@@ -4,13 +4,11 @@ import 'cropperjs/dist/cropper.css'
 import {
   CButton,
   CCol,
-  CContainer,
   CForm,
   CFormInput,
   CFormLabel,
   CFormText,
   CFormTextarea,
-  CInputGroup,
   CModal,
   CModalBody,
   CModalHeader,
@@ -20,35 +18,32 @@ import {
 } from '@coreui/react'
 import MaterialReactTable from 'material-react-table'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faEye, faEyeSlash, faFileExcel, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useFormik } from 'formik'
 import Select from 'react-select'
 import { ToastContainer, toast } from 'react-toastify'
 import { Box, Button, IconButton, Tooltip } from '@mui/material'
-import { AlternateEmailRounded, DeleteOutline, EditSharp, Key } from '@mui/icons-material'
+import { DeleteOutline, EditSharp } from '@mui/icons-material'
 import {
   DefaultLoading,
   RequiredFieldNote,
   api,
   requiredField,
-  roleType,
-  toSentenceCase,
   validationPrompt,
 } from 'src/components/SystemConfiguration'
 import * as Yup from 'yup'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { jwtDecode } from 'jwt-decode'
+import PageTitle from 'src/components/PageTitle'
 
 const TripTicket = ({ cardTitle }) => {
   const queryClient = useQueryClient()
-  const [modalVisible, setModalVisible] = useState(true)
+  const [modalVisible, setModalVisible] = useState(false)
   const tripTicketProductInputRef = useRef()
+  const tripTicketRemarksInputRef = useRef()
   const tripTicketDriverInputRef = useRef()
   const tripTicketEquipmentInputRef = useRef()
-  const [operationLoading, setOperationLoading] = useState(false)
-  const [modalFormVisible, setModalFormVisible] = useState(false)
-  const [modalChangePasswordFormVisible, setModalChangePasswordFormVisible] = useState(false)
-  const [isEnableEdit, setIsEnableEdit] = useState(false)
-  const [togglePassword, setTogglePassword] = useState(true)
+  const user = jwtDecode(localStorage.getItem('folomsToken'))
   const column = [
     {
       accessorKey: 'control_number',
@@ -91,13 +86,13 @@ const TripTicket = ({ cardTitle }) => {
       accessorKey: 'driver',
       header: "Driver's Name",
       accessorFn: (row) =>
-        `${row.first_name} ${
-          row.middle_name
-            ? row.middle_name.length === 1
-              ? row.middle_name + '.'
-              : row.middle_name.substring(0, 1) + '.'
+        ` ${row.driver_last_name}, ${row.driver_first_name} ${
+          row.driver_middle_name
+            ? row.driver_middle_name.length === 1
+              ? row.driver_middle_name + '.'
+              : row.driver_middle_name.substring(0, 1) + '.'
             : ''
-        } ${row.last_name} ${row.suffix ? row.suffix : ''}`,
+        }  ${row.driver_suffix ? row.driver_suffix : ''}`,
     },
     {
       accessorKey: 'abbr',
@@ -114,18 +109,30 @@ const TripTicket = ({ cardTitle }) => {
     {
       accessorKey: 'departure_time',
       header: 'Departure Time',
+      accessorFn: (row) => {
+        return twelveHourFormat(row.departure_time)
+      },
     },
     {
       accessorKey: 'arrival_time_at_destination',
       header: 'Arrival Time at Destination',
+      accessorFn: (row) => {
+        return twelveHourFormat(row.arrival_time_at_destination)
+      },
     },
     {
       accessorKey: 'departure_time_from_destination',
       header: 'Departure Time from Destination',
+      accessorFn: (row) => {
+        return twelveHourFormat(row.departure_time_from_destination)
+      },
     },
     {
       accessorKey: 'arrival_time_back',
       header: 'Arrival Time Back',
+      accessorFn: (row) => {
+        return twelveHourFormat(row.arrival_time_back)
+      },
     },
     {
       accessorKey: 'approximate_distance_traveled',
@@ -191,7 +198,41 @@ const TripTicket = ({ cardTitle }) => {
       accessorKey: 'encoded_at',
       header: 'Encoded at',
     },
+    {
+      accessorKey: 'user_id',
+      header: 'Encoded by',
+      accessorFn: (row) =>
+        ` ${row.user_last_name}, ${row.user_first_name} ${
+          row.user_middle_name
+            ? row.user_middle_name.length === 1
+              ? row.user_middle_name + '.'
+              : row.user_middle_name.substring(0, 1) + '.'
+            : ''
+        }  `,
+    },
   ]
+
+  const twelveHourFormat = (value) => {
+    const time24 = value
+
+    if (!time24) {
+      return '' // or return a default value, e.g., 'N/A'
+    }
+
+    const [hours, minutes] = time24.split(':')
+    let period = 'AM'
+    let hours12 = parseInt(hours, 10)
+
+    if (hours12 >= 12) {
+      period = 'PM'
+      if (hours12 > 12) hours12 -= 12
+    }
+    if (hours12 === 0) {
+      hours12 = 12
+    }
+
+    return `${hours12}:${minutes} ${period}`
+  }
 
   const tripTicketProduct = useQuery({
     queryFn: async () =>
@@ -219,7 +260,7 @@ const TripTicket = ({ cardTitle }) => {
                 : item.middle_name.substring(0, 1) + '.'
               : ''
           } ${item.suffix ? item.suffix : ''}`
-          const job_description = item.job_description ? '' : item.job_description
+          const job_description = item.job_description ? item.job_description : ''
           return { value, label, job_description }
         })
         return formattedData
@@ -234,7 +275,9 @@ const TripTicket = ({ cardTitle }) => {
         const formattedData = response.data.map((item) => {
           const value = item.id
           const label = `${item.plate_number} - ${item.model} - ${item.abbr} `
-          return { value, label }
+          const times = item.times
+          const tank_balance = item.tank_balance
+          return { value, label, times, tank_balance }
         })
         return formattedData
       }),
@@ -261,17 +304,55 @@ const TripTicket = ({ cardTitle }) => {
     staleTime: Infinity,
     refetchInterval: 100,
   })
-  const validationSchema = Yup.object().shape({
-    purchase_date: Yup.string().required('Date is required'),
-    product: Yup.string().required('Product is required'),
-    driver: Yup.string().required('Driver is required'),
-    equipment: Yup.string().required('Equipment is required'),
-  })
+  const validationSchema = Yup.object()
+    .shape({
+      purchase_date: Yup.string().required('Date is required'),
+      product: Yup.string().required('Product is required'),
+      driver: Yup.string().required('Driver is required'),
+      equipment: Yup.string().required('Equipment is required'),
+
+      gasoline_purchased: Yup.string(),
+      gasoline_issued_by_office: Yup.string(),
+      total: Yup.number()
+        .typeError('Total must be a number')
+        .notOneOf([0], 'Total must not be zero')
+        .required('Total is required')
+        .test({
+          name: 'valid-number',
+          message: 'Total must be a valid number',
+          test: (value) => {
+            if (isNaN(value)) {
+              return false // Fail validation if value is NaN
+            }
+            return true
+          },
+        }),
+    })
+    .test(
+      'gasoline-check',
+      'Either Gasoline Purchased or Gasoline Issued By Office is required',
+      function (value) {
+        const { gasoline_purchased, gasoline_issued_by_office } = value
+        if (!gasoline_purchased && !gasoline_issued_by_office) {
+          return this.createError({
+            path: 'gasoline_check',
+            message: 'Either Issued By Office or Add Purchase is required',
+          })
+        }
+        if (gasoline_purchased && gasoline_issued_by_office) {
+          return this.createError({
+            path: 'gasoline_check',
+            message: 'Only one of Issued By Office or Add Purchase should be filled',
+          })
+        }
+        return true
+      },
+    )
   const form = useFormik({
     initialValues: {
       id: '',
       control_number: '',
-      purchase_date: '2024-06-19',
+      purchase_date: '',
       product: '',
       driver: '',
       equipment: '',
@@ -284,8 +365,9 @@ const TripTicket = ({ cardTitle }) => {
       arrival_time_back: '17:00',
       approximate_distance_traveled: '',
       gasoline_balance_in_tank: 0,
-      gasoline_issued_by_office: 0,
-      gasoline_purchased: 0,
+      gasoline_issued_by_office: '',
+      gasoline_purchased: '',
+      unit_cost: '',
       total: 0,
       gasoline_used: 0,
       gasoline_balance_end_trip: 0,
@@ -296,14 +378,18 @@ const TripTicket = ({ cardTitle }) => {
       speedometer_start: '',
       speedometer_end: '',
       distance_traveled: '',
-      remarks: '',
+      remarks: 'Distance travel is only an estimate',
+      times: '',
+      job_description: '',
+      user_id: '',
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
+      const newValues = { ...values, user_id: user.id }
       if (values.id) {
-        await updateTripTicket.mutate(values)
+        await updateTripTicket.mutate(newValues)
       } else {
-        await insertTripTicket.mutate(values)
+        await insertTripTicket.mutate(newValues)
       }
     },
   })
@@ -318,12 +404,16 @@ const TripTicket = ({ cardTitle }) => {
       }
       form.resetForm()
 
+      if (tripTicketRemarksInputRef.current) {
+        tripTicketRemarksInputRef.current.value = ''
+      }
       tripTicketProductInputRef.current.clearValue()
       tripTicketDriverInputRef.current.clearValue()
       tripTicketEquipmentInputRef.current.clearValue()
       await queryClient.invalidateQueries(['tripTicket'])
     },
     onError: (error) => {
+      console.info(error)
       toast.error('Duplicate Entry!')
     },
   })
@@ -347,45 +437,74 @@ const TripTicket = ({ cardTitle }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
-    let approximateDistanceTravel = 0
-    if (name === 'gasoline_balance_in_tank') {
-      // console.info(value)
+
+    if (name === 'gasoline_issued_by_office') {
+      form.setFieldValue('gasoline_used', !value.trim() ? 0 : value)
       form.setFieldValue(
         'approximate_distance_traveled',
-        parseFloat(value) * parseFloat(form.values.gasoline_purchased),
-      )
-      form.setFieldValue('total', parseFloat(value) + parseFloat(form.values.gasoline_purchased))
-      form.setFieldValue('gasoline_balance_end_trip', value)
-    }
-    if (name === 'gasoline_purchased') {
-      // console.info(value)
-      form.setFieldValue('gasoline_used', value)
-      form.setFieldValue(
-        'approximate_distance_traveled',
-        parseFloat(value) * parseFloat(form.values.gasoline_balance_in_tank),
+        parseFloat(value) * parseFloat(form.values.times),
       )
       form.setFieldValue(
         'total',
-        parseFloat(value) + parseFloat(form.values.gasoline_balance_in_tank),
+        (!value.trim() ? 0 : parseFloat(value)) + parseFloat(form.values.gasoline_balance_in_tank),
+      )
+      form.setFieldValue(
+        'gasoline_balance_end_trip',
+        (!value.trim() ? 0 : parseFloat(value)) +
+          parseFloat(form.values.gasoline_balance_in_tank) -
+          (!value.trim() ? 0 : value),
       )
     }
-    // console.info(name)
+
+    if (name === 'gasoline_purchased') {
+      form.setFieldValue('gasoline_used', !value.trim() ? 0 : value)
+      form.setFieldValue(
+        'approximate_distance_traveled',
+        parseFloat(value) * parseFloat(form.values.times),
+      )
+      form.setFieldValue(
+        'total',
+        (!value.trim() ? 0 : parseFloat(value)) + parseFloat(form.values.gasoline_balance_in_tank),
+      )
+      form.setFieldValue(
+        'gasoline_balance_end_trip',
+        (!value.trim() ? 0 : parseFloat(value)) +
+          parseFloat(form.values.gasoline_balance_in_tank) -
+          (!value.trim() ? 0 : value),
+      )
+    }
     form.setFieldValue(name, value)
   }
 
   const handleSelectChange = (selectedOption, ref) => {
-    // console.info(ref.name)
+    if (ref.name === 'product') {
+      form.setFieldValue('product', selectedOption ? selectedOption.value : '')
+    }
     if (ref.name === 'driver') {
-      console.info(selectedOption.job_description)
-      form.setFieldValue('purposes', selectedOption.job_description)
-      // form.setFieldValue(ref.name, selectedOption ? selectedOption.value : '')
+      form.setFieldValue('purposes', selectedOption ? selectedOption.job_description : '')
+      form.setFieldValue('driver', selectedOption ? selectedOption.value : '')
+    }
+    if (ref.name === 'equipment') {
+      form.setFieldValue('times', selectedOption ? selectedOption.times : '')
+      form.setFieldValue(
+        'gasoline_balance_in_tank',
+        selectedOption ? selectedOption.tank_balance : '',
+      )
+      if (form.values.gasoline_purchased) {
+        form.setFieldValue(
+          'approximate_distance_traveled',
+          parseFloat(form.values.gasoline_purchased) *
+            parseFloat(selectedOption ? selectedOption.times : 0),
+        )
+      }
+      form.setFieldValue('equipment', selectedOption ? selectedOption.value : '')
     }
   }
 
   return (
     <>
       <ToastContainer />
-      <h2>{cardTitle}</h2>
+      <PageTitle pageTitle={cardTitle} />
       <MaterialReactTable
         columns={column}
         data={!tripTicket.isLoading && tripTicket.data}
@@ -437,17 +556,16 @@ const TripTicket = ({ cardTitle }) => {
               size="medium"
               title="Add New"
               shape="rounded" // Shape should be "rounded"
-              style={{ fontSize: 14 }}
+              style={{ fontSize: 20 }}
               onClick={() => {
                 form.resetForm()
-                setIsEnableEdit(false)
 
-                setModalVisible(!modalFormVisible)
+                setModalVisible(!modalVisible)
               }}
             >
               <FontAwesomeIcon icon={faPlus} />
             </Button>
-            <Button
+            {/* <Button
               color="primary"
               variant="outlined"
               size="medium"
@@ -459,7 +577,7 @@ const TripTicket = ({ cardTitle }) => {
               }}
             >
               <FontAwesomeIcon icon={faFileExcel} size="xl" />
-            </Button>
+            </Button> */}
           </Box>
         )}
         renderRowActions={({ row, table }) => (
@@ -468,7 +586,18 @@ const TripTicket = ({ cardTitle }) => {
               <IconButton
                 color="warning"
                 onClick={() => {
+                  let total = 0
                   console.info(row.original)
+                  if (row.original.gasoline_purchased > 0) {
+                    total =
+                      parseFloat(row.original.gasoline_balance_in_tank) +
+                      parseFloat(row.original.gasoline_purchased)
+                  }
+                  if (row.original.gasoline_issued_by_office > 0) {
+                    total =
+                      parseFloat(row.original.gasoline_balance_in_tank) +
+                      parseFloat(row.original.gasoline_issued_by_office)
+                  }
                   form.setValues({
                     id: row.original.id,
                     control_number: row.original.control_number,
@@ -485,11 +614,17 @@ const TripTicket = ({ cardTitle }) => {
                     arrival_time_back: row.original.arrival_time_back,
                     approximate_distance_traveled: row.original.approximate_distance_traveled,
                     gasoline_balance_in_tank: row.original.gasoline_balance_in_tank,
-                    gasoline_issued_by_office: row.original.gasoline_issued_by_office,
-                    gasoline_purchased: row.original.gasoline_purchased,
-                    total:
-                      parseFloat(row.original.gasoline_balance_in_tank) +
-                      parseFloat(row.original.gasoline_purchased), // total
+                    gasoline_issued_by_office:
+                      parseFloat(row.original.gasoline_issued_by_office) == 0
+                        ? ''
+                        : row.original.gasoline_issued_by_office,
+                    gasoline_purchased:
+                      parseFloat(row.original.gasoline_purchased) == 0
+                        ? ''
+                        : row.original.gasoline_purchased,
+                    total: total,
+                    //   parseFloat(row.original.gasoline_balance_in_tank) +
+                    //   parseFloat(row.original.gasoline_purchased), // total
                     gasoline_used: row.original.gasoline_used,
                     gasoline_balance_end_trip: row.original.gasoline_balance_end_trip,
                     gear_oil_issued_purchased: row.original.gear_oil_issued_purchased,
@@ -500,7 +635,9 @@ const TripTicket = ({ cardTitle }) => {
                     speedometer_end: row.original.speedometer_end,
                     distance_traveled: row.original.distance_traveled,
                     remarks: row.original.remarks,
+                    times: row.original.times,
                   })
+
                   setModalVisible(true)
                 }}
               >
@@ -569,47 +706,41 @@ const TripTicket = ({ cardTitle }) => {
                 </>
               ) : (
                 <h5 className="me-md-2">
-                  <h5 className="me-md-2">
-                    {(() => {
-                      if (form.values.id === '') {
-                        const purchaseDate = form.values.purchase_date // Assuming the format is YYYY-MM-DD
-                        let formattedDate = ''
+                  {(() => {
+                    if (form.values.id === '') {
+                      const purchaseDate = form.values.purchase_date // Assuming the format is YYYY-MM-DD
+                      let formattedDate = ''
 
-                        if (purchaseDate) {
-                          const [year, month, day] = purchaseDate.split('-')
-                          if (year && month && day) {
-                            const formattedYear = year.slice(2) // Get the last two digits of the year
-                            formattedDate = `${month}-${day}-${formattedYear}`
-                          }
+                      if (purchaseDate) {
+                        const [year, month, day] = purchaseDate.split('-')
+                        if (year && month && day) {
+                          const formattedYear = year.slice(2) // Get the last two digits of the year
+                          formattedDate = `${month}-${day}-${formattedYear}`
                         }
-
-                        const controlNumber = tripTicketControlNumber?.data?.control_number || 0
-                        const formattedControlNumber = String(controlNumber).padStart(4, '0')
-
-                        return `${
-                          formattedDate ? formattedDate + '-' : ''
-                        }${formattedControlNumber}`
-                      } else {
-                        const purchaseDate = form.values.purchase_date // Assuming the format is YYYY-MM-DD
-                        let formattedDate = ''
-
-                        if (purchaseDate) {
-                          const [year, month, day] = purchaseDate.split('-')
-                          if (year && month && day) {
-                            const formattedYear = year.slice(2) // Get the last two digits of the year
-                            formattedDate = `${month}-${day}-${formattedYear}`
-                          }
-                        }
-
-                        const controlNumber = form.values.control_number || 0
-                        const formattedControlNumber = String(controlNumber).padStart(4, '0')
-
-                        return `${
-                          formattedDate ? formattedDate + '-' : ''
-                        }${formattedControlNumber}`
                       }
-                    })()}
-                  </h5>
+
+                      const controlNumber = tripTicketControlNumber?.data?.control_number || 0
+                      const formattedControlNumber = String(controlNumber).padStart(4, '0')
+
+                      return `${formattedDate ? formattedDate + '-' : ''}${formattedControlNumber}`
+                    } else {
+                      const purchaseDate = form.values.purchase_date // Assuming the format is YYYY-MM-DD
+                      let formattedDate = ''
+
+                      if (purchaseDate) {
+                        const [year, month, day] = purchaseDate.split('-')
+                        if (year && month && day) {
+                          const formattedYear = year.slice(2) // Get the last two digits of the year
+                          formattedDate = `${month}-${day}-${formattedYear}`
+                        }
+                      }
+
+                      const controlNumber = form.values.control_number || 0
+                      const formattedControlNumber = String(controlNumber).padStart(4, '0')
+
+                      return `${formattedDate ? formattedDate + '-' : ''}${formattedControlNumber}`
+                    }
+                  })()}
                 </h5>
               )}
             </div>
@@ -841,14 +972,18 @@ const TripTicket = ({ cardTitle }) => {
                           type="number"
                           name="gasoline_balance_in_tank"
                           onChange={handleInputChange}
-                          style={{ textAlign: 'right' }}
                           value={form.values.gasoline_balance_in_tank}
                           placeholder="0"
+                          style={{ textAlign: 'right', backgroundColor: '#D8EFD3' }}
                           size="sm"
+                          readOnly
                         />
                       </CCol>
                       <CFormLabel className="col-md-8 col-form-label ml-4" size="sm">
-                        b. Issued By Office
+                        b. Issued By Office{' '}
+                        <small className="text-danger">
+                          *{form.values.times && parseInt(form.values.times)}
+                        </small>
                       </CFormLabel>
                       <CCol md={4}>
                         <CFormInput
@@ -862,7 +997,10 @@ const TripTicket = ({ cardTitle }) => {
                         />
                       </CCol>
                       <CFormLabel className="col-md-8 col-form-label" size="sm">
-                        c. Add Purchase
+                        c. Add Purchase{' '}
+                        <small className="text-danger">
+                          *{form.values.times && parseInt(form.values.times)}
+                        </small>
                       </CFormLabel>
                       <CCol md={4}>
                         <CFormInput
@@ -871,10 +1009,20 @@ const TripTicket = ({ cardTitle }) => {
                           onChange={handleInputChange}
                           style={{ textAlign: 'right' }}
                           value={form.values.gasoline_purchased}
-                          placeholder="0"
                           size="sm"
+                          placeholder="0"
                         />
                       </CCol>
+                      {form.touched.gasoline_purchased && form.errors.gasoline_purchased && (
+                        <CFormText className="text-danger">
+                          {form.errors.gasoline_purchased}
+                        </CFormText>
+                      )}
+
+                      {form.errors.gasoline_check && (
+                        <CFormText className="text-danger">{form.errors.gasoline_check}</CFormText>
+                      )}
+
                       <CFormLabel className="col-md-8 col-form-label" size="sm">
                         <strong>TOTAL</strong>
                       </CFormLabel>
@@ -889,6 +1037,10 @@ const TripTicket = ({ cardTitle }) => {
                           readOnly={true}
                         />
                       </CCol>
+                      {form.touched.total && form.errors.total && (
+                        <CFormText className="text-danger">{form.errors.total}</CFormText>
+                      )}
+
                       <CFormLabel className="col-md-8 col-form-label" size="sm">
                         d. Deduct
                       </CFormLabel>
@@ -917,6 +1069,21 @@ const TripTicket = ({ cardTitle }) => {
                           placeholder="0"
                           size="sm"
                           readOnly={true}
+                        />
+                      </CCol>
+                      <hr />
+                      <CFormLabel className="col-md-8 col-form-label" size="sm">
+                        Unit Cost
+                      </CFormLabel>
+                      <CCol md={4}>
+                        <CFormInput
+                          type="number"
+                          name="unit_cost"
+                          onChange={handleInputChange}
+                          style={{ textAlign: 'right' }}
+                          value={form.values.unit_cost}
+                          placeholder="0"
+                          size="sm"
                         />
                       </CCol>
                     </CRow>
@@ -1030,6 +1197,7 @@ const TripTicket = ({ cardTitle }) => {
                           Remarks
                         </CFormLabel>
                         <CFormTextarea
+                          ref={tripTicketRemarksInputRef}
                           placeholder="Remarks"
                           name="remarks"
                           onChange={handleInputChange}

@@ -45,7 +45,7 @@ class TripTicket extends RestController
 
 
 
-		// get the last control number 
+		// get the last control number
 
 		$control_number = $controlNumberModel->get_last_control_number();
 
@@ -77,6 +77,7 @@ class TripTicket extends RestController
 			'speedometer_end' => $requestData['speedometer_end'],
 			'distance_traveled' => $requestData['distance_traveled'],
 			'remarks' => $requestData['remarks'],
+			'user_id' => $requestData['user_id'],
 			'control_number' => $control_number->control_number,
 		);
 
