@@ -20,6 +20,7 @@ class EquipmentModel extends CI_Model
 				equipment.model,
 				equipment.plate_number,
 				equipment.fuel_capacity,
+				equipment.include_description,
 				office.id office_id,
 				office.office,
 				office.abbr,
@@ -27,10 +28,14 @@ class EquipmentModel extends CI_Model
 				equipment_type.type,
 				equipment_type.times,
 				equipment_type.tank_balance, 
+				report_type.id report_type_id, 
+				report_type.type report_type,  
+				report_type.description report_description, 
 				')
 			->from('equipment')
 			->join('office', 'equipment.office = office.id', 'LEFT')
 			->join('equipment_type', 'equipment.equipment_type = equipment_type.id', 'LEFT')
+			->join('report_type', 'equipment.report_type = report_type.id', 'LEFT')
 			->order_by('equipment.model');
 
 
