@@ -5,10 +5,10 @@ import {
   CButton,
   CCol,
   CForm,
+  CFormCheck,
   CFormInput,
   CFormLabel,
   CFormText,
-  CInputGroup,
   CModal,
   CModalBody,
   CModalHeader,
@@ -18,35 +18,29 @@ import {
 } from '@coreui/react'
 import MaterialReactTable from 'material-react-table'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faEye, faEyeSlash, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useFormik } from 'formik'
 import Select from 'react-select'
 import { ToastContainer, toast } from 'react-toastify'
 import { Box, Button, IconButton, Tooltip } from '@mui/material'
-import { DeleteOutline, EditSharp, Key } from '@mui/icons-material'
+import { DeleteOutline, EditSharp } from '@mui/icons-material'
 import {
   DefaultLoading,
   RequiredFieldNote,
   api,
   requiredField,
-  roleType,
-  toSentenceCase,
   validationPrompt,
 } from 'src/components/SystemConfiguration'
 import * as Yup from 'yup'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import PageTitle from 'src/components/PageTitle'
 
 const Driver = ({ cardTitle }) => {
   const queryClient = useQueryClient()
   const equipmentOfficeInputRef = useRef()
   const equipmentTypeInputRef = useRef()
+  const reportTypeInputRef = useRef()
   const [modalVisible, setModalVisible] = useState(false)
-  const selectRoleTypeInputRef = useRef()
-  const [operationLoading, setOperationLoading] = useState(false)
-  const [modalFormVisible, setModalFormVisible] = useState(false)
-  const [modalChangePasswordFormVisible, setModalChangePasswordFormVisible] = useState(false)
-  const [isEnableEdit, setIsEnableEdit] = useState(false)
-  const [togglePassword, setTogglePassword] = useState(true)
   const column = [
     {
       accessorKey: 'model',
@@ -76,6 +70,17 @@ const Driver = ({ cardTitle }) => {
       accessorKey: 'tank_balance',
       header: 'Balance in Tank',
     },
+    {
+      accessorKey: 'include_description',
+      header: 'Include Description',
+      accessorFn: (row) => {
+        return row.include_description == 1 ? 'Yes' : 'No'
+      },
+    },
+    {
+      accessorKey: 'report_type',
+      header: 'Report Type',
+    },
   ]
 
   const equipment = useQuery({
@@ -87,6 +92,20 @@ const Driver = ({ cardTitle }) => {
     staleTime: Infinity,
   })
 
+  const equipmentReportType = useQuery({
+    queryFn: async () =>
+      await api.get('report_type').then((response) => {
+        const formattedData = response.data.map((item) => {
+          const value = item.id
+          const label = `${item.type} - ${item.description}`
+          return { value, label }
+        })
+        return formattedData
+      }),
+    queryKey: ['equipmentReportType'],
+    staleTime: Infinity,
+    refetchInterval: 1000,
+  })
   const equipmentOffice = useQuery({
     queryFn: async () =>
       await api.get('office').then((response) => {
@@ -118,7 +137,8 @@ const Driver = ({ cardTitle }) => {
   })
 
   const validationSchema = Yup.object().shape({
-    office: Yup.string().required('office is required'),
+    office: Yup.string().required('Office is required'),
+    report_type: Yup.string().required('Report Type is required'),
   })
   const form = useFormik({
     initialValues: {
@@ -128,6 +148,8 @@ const Driver = ({ cardTitle }) => {
       fuel_capacity: '',
       office: '',
       equipment_type: '',
+      include_description: false,
+      report_type: '',
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
@@ -176,8 +198,11 @@ const Driver = ({ cardTitle }) => {
 
   const handleInputChange = (e) => {
     form.handleChange(e)
-    const { name, value } = e.target
-    form.setFieldValue(name, value)
+
+    const { name, type, checked, value } = e.target
+    const inputValue = type === 'checkbox' ? checked : value
+
+    form.setFieldValue(name, inputValue)
   }
 
   const handleSelectChange = (selectedOption, ref) => {
@@ -186,7 +211,8 @@ const Driver = ({ cardTitle }) => {
   return (
     <>
       <ToastContainer />
-      <h2>{cardTitle}</h2>
+
+      <PageTitle pageTitle={cardTitle} />
       <MaterialReactTable
         columns={column}
         data={!equipment.isLoading && equipment.data}
@@ -239,9 +265,8 @@ const Driver = ({ cardTitle }) => {
               style={{ fontSize: 20 }}
               onClick={() => {
                 form.resetForm()
-                setIsEnableEdit(false)
 
-                setModalVisible(!modalFormVisible)
+                setModalVisible(!modalVisible)
               }}
             >
               <FontAwesomeIcon icon={faPlus} />
@@ -260,7 +285,9 @@ const Driver = ({ cardTitle }) => {
                     model: row.original.model,
                     office: row.original.office_id,
                     fuel_capacity: row.original.fuel_capacity,
-                    equipment_type: row.original.equipment_type,
+                    equipment_type: row.original.equipment_type_id,
+                    report_type: row.original.report_type_id,
+                    include_description: row.original.include_description == 1 ? true : false,
                   })
                   setModalVisible(true)
                 }}
@@ -407,6 +434,42 @@ const Driver = ({ cardTitle }) => {
                 {form.touched.equipment_type && form.errors.equipment_type && (
                   <CFormText className="text-danger">{form.errors.equipment_type}</CFormText>
                 )}
+              </CCol>
+              <CCol md={12}>
+                <CFormLabel>
+                  {
+                    <>
+                      {equipmentReportType.isLoading && <CSpinner size="sm" />}
+                      {requiredField('Report type')}
+                    </>
+                  }
+                </CFormLabel>
+                <Select
+                  ref={reportTypeInputRef}
+                  value={
+                    !equipmentReportType.isLoading &&
+                    equipmentReportType.data?.find(
+                      (option) => option.value === form.values.report_type,
+                    )
+                  }
+                  onChange={handleSelectChange}
+                  options={!equipmentReportType.isLoading && equipmentReportType.data}
+                  name="report_type"
+                  isSearchable
+                  placeholder="Search..."
+                  isClearable
+                />
+                {form.touched.report_type && form.errors.report_type && (
+                  <CFormText className="text-danger">{form.errors.report_type}</CFormText>
+                )}
+              </CCol>
+              <CCol className="mt-4" md={12}>
+                <CFormCheck
+                  name="include_description"
+                  onChange={handleInputChange}
+                  checked={form.values.include_description}
+                  label={'Include Description in Monthly Report'}
+                />
               </CCol>
             </CRow>
 
