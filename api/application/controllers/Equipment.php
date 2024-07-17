@@ -47,6 +47,9 @@ class Equipment extends RestController
 			'fuel_capacity' => $requestData['fuel_capacity'],
 			'office' => $requestData['office'],
 			'equipment_type' => $requestData['equipment_type'],
+			'include_description' => $requestData['include_description'],
+			'report_type' => $requestData['report_type'],
+
 		);
 
 
@@ -72,9 +75,9 @@ class Equipment extends RestController
 
 
 		$equipmentModel = new EquipmentModel;
-		
+
 		$requestData = json_decode($this->input->raw_input_stream, true);
-		
+
 		if (isset($requestData['model'])) {
 			$data['model'] = $requestData['model'];
 		}
@@ -90,7 +93,12 @@ class Equipment extends RestController
 		if (isset($requestData['equipment_type'])) {
 			$data['equipment_type'] = $requestData['equipment_type'];
 		}
-
+		if (isset($requestData['include_description'])) {
+			$data['include_description'] = $requestData['include_description'];
+		}
+		if (isset($requestData['report_type'])) {
+			$data['report_type'] = $requestData['report_type'];
+		}
 		$update_result = $equipmentModel->update($id, $data);
 
 		if ($update_result > 0) {
