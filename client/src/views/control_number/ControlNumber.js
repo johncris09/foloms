@@ -34,16 +34,11 @@ import {
 } from 'src/components/SystemConfiguration'
 import * as Yup from 'yup'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import PageTitle from 'src/components/PageTitle'
 
 const Driver = ({ cardTitle }) => {
   const queryClient = useQueryClient()
   const [modalVisible, setModalVisible] = useState(false)
-  const selectRoleTypeInputRef = useRef()
-  const [operationLoading, setOperationLoading] = useState(false)
-  const [modalFormVisible, setModalFormVisible] = useState(false)
-  const [modalChangePasswordFormVisible, setModalChangePasswordFormVisible] = useState(false)
-  const [isEnableEdit, setIsEnableEdit] = useState(false)
-  const [togglePassword, setTogglePassword] = useState(true)
   const column = [
     {
       accessorKey: 'control_number',
@@ -103,7 +98,7 @@ const Driver = ({ cardTitle }) => {
   return (
     <>
       <ToastContainer />
-      <h2>{cardTitle}</h2>
+      <PageTitle pageTitle={cardTitle} />
       <MaterialReactTable
         columns={column}
         data={!controlNumber.isLoading && controlNumber.data}

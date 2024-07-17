@@ -35,17 +35,11 @@ import {
 } from 'src/components/SystemConfiguration'
 import * as Yup from 'yup'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import PageTitle from 'src/components/PageTitle'
 
 const Driver = ({ cardTitle }) => {
   const queryClient = useQueryClient()
-  const equipmentOfficeInputRef = useRef()
   const [modalVisible, setModalVisible] = useState(false)
-  const selectRoleTypeInputRef = useRef()
-  const [operationLoading, setOperationLoading] = useState(false)
-  const [modalFormVisible, setModalFormVisible] = useState(false)
-  const [modalChangePasswordFormVisible, setModalChangePasswordFormVisible] = useState(false)
-  const [isEnableEdit, setIsEnableEdit] = useState(false)
-  const [togglePassword, setTogglePassword] = useState(true)
   const column = [
     {
       accessorKey: 'type',
@@ -134,7 +128,7 @@ const Driver = ({ cardTitle }) => {
   return (
     <>
       <ToastContainer />
-      <h2>{cardTitle}</h2>
+      <PageTitle pageTitle={cardTitle} />
       <MaterialReactTable
         columns={column}
         data={!equipmentType.isLoading && equipmentType.data}
@@ -198,9 +192,8 @@ const Driver = ({ cardTitle }) => {
               style={{ fontSize: 20 }}
               onClick={() => {
                 form.resetForm()
-                setIsEnableEdit(false)
 
-                setModalVisible(!modalFormVisible)
+                setModalVisible(!modalVisible)
               }}
             >
               <FontAwesomeIcon icon={faPlus} />
