@@ -3,7 +3,6 @@ import {
   CButton,
   CCard,
   CCardBody,
-  CCardGroup,
   CCol,
   CContainer,
   CForm,
@@ -15,12 +14,11 @@ import logo from './../../../assets/images/logo.png'
 import { useFormik } from 'formik'
 import { useNavigate } from 'react-router-dom'
 import { ToastContainer, toast } from 'react-toastify'
-import { DefaultLoading, api, handleError } from 'src/components/SystemConfiguration'
-import { InvalidTokenError, jwtDecode } from 'jwt-decode'
+import { DefaultLoading, api } from 'src/components/SystemConfiguration'
+import { jwtDecode } from 'jwt-decode'
 import './../../../assets/css/custom.css'
-import Particles, { initParticlesEngine } from '@tsparticles/react'
+import { initParticlesEngine } from '@tsparticles/react'
 import { loadSlim } from '@tsparticles/slim'
-import ParticlesConfig from './ParticlesConfig'
 const Login = () => {
   const [loading, setLoading] = useState(false)
   const [validated, setValidated] = useState(false)
@@ -54,8 +52,8 @@ const Login = () => {
 
   const formik = useFormik({
     initialValues: {
-      username: 'foloms',
-      password: 'foloms',
+      username: '',
+      password: '',
     },
 
     onSubmit: async (values) => {
@@ -68,22 +66,10 @@ const Login = () => {
           .then(async (response) => {
             console.info(response.data)
             if (response.data.status) {
-              toast.success(response.data.message)
-
               localStorage.setItem('folomsToken', response.data.token)
               const user = jwtDecode(response.data.token)
-              // if (response.data.role === 'Super Admin') {
-              //   if (response.data.school !== '') {
-              //     navigate('/home', { replace: true })
-              //   } else {
-              //     navigate('/dashboard', { replace: true })
-              //   }
-              // } else {
 
-              // }
               navigate('/dashboard', { replace: true })
-              // update login status then go to dashboard/home page
-              // await api.put('user/update/' + user.id, { isLogin: 1 }).then((response) => {})
             } else {
               toast.error(response.data.message)
             }
