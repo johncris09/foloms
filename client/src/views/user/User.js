@@ -40,7 +40,10 @@ const User = ({ cardTitle }) => {
   const queryClient = useQueryClient()
   const [modalVisible, setModalVisible] = useState(false)
   const selectRoleTypeInputRef = useRef()
+  const [operationLoading, setOperationLoading] = useState(false)
+  const [modalFormVisible, setModalFormVisible] = useState(false)
   const [modalChangePasswordFormVisible, setModalChangePasswordFormVisible] = useState(false)
+  const [isEnableEdit, setIsEnableEdit] = useState(false)
   const [togglePassword, setTogglePassword] = useState(true)
   const column = [
     {
@@ -279,8 +282,9 @@ const User = ({ cardTitle }) => {
               style={{ fontSize: 20 }}
               onClick={() => {
                 form.resetForm()
+                setIsEnableEdit(false)
 
-                setModalVisible(!modalVisible)
+                setModalVisible(!modalFormVisible)
               }}
             >
               <FontAwesomeIcon icon={faPlus} />

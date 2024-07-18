@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import './../../assets/css/react-paginate.css'
 import { CButton, CCol, CForm, CFormInput, CFormLabel, CFormText, CInputGroup } from '@coreui/react'
 import { useFormik } from 'formik'
@@ -18,6 +18,7 @@ import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 const ChangePassword = () => {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const [togglePassword, setTogglePassword] = useState(true)
 
   const userInfo = jwtDecode(localStorage.getItem('folomsToken'))

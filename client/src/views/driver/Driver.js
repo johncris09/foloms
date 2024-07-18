@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState } from 'react'
 import Swal from 'sweetalert2'
 import 'cropperjs/dist/cropper.css'
 import {
@@ -6,9 +6,7 @@ import {
   CCol,
   CForm,
   CFormInput,
-  CFormLabel,
   CFormText,
-  CInputGroup,
   CModal,
   CModalBody,
   CModalHeader,
@@ -17,19 +15,16 @@ import {
 } from '@coreui/react'
 import MaterialReactTable from 'material-react-table'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faEye, faEyeSlash, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useFormik } from 'formik'
-import Select from 'react-select'
 import { ToastContainer, toast } from 'react-toastify'
 import { Box, Button, IconButton, Tooltip } from '@mui/material'
-import { DeleteOutline, EditSharp, Key } from '@mui/icons-material'
+import { DeleteOutline, EditSharp } from '@mui/icons-material'
 import {
   DefaultLoading,
   RequiredFieldNote,
   api,
   requiredField,
-  roleType,
-  toSentenceCase,
   validationPrompt,
 } from 'src/components/SystemConfiguration'
 import * as Yup from 'yup'
