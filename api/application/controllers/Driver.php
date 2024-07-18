@@ -15,6 +15,8 @@ class Driver extends RestController
 		// Construct the parent class
 		parent::__construct();
 		$this->load->model('DriverModel');
+		$this->load->model('ProductModel');
+		$this->load->model('TripTicketModel');
 
 	}
 
@@ -24,6 +26,64 @@ class Driver extends RestController
 		$result = $driverModel->get();
 		$this->response($result, RestController::HTTP_OK);
 	}
+
+
+	public function top_consumption_get()
+	{
+		$driverModel = new DriverModel;
+		$productModel = new ProductModel;
+		$tripTicketModel = new TripTicketModel;
+		$data = [];
+
+		$drivers = $driverModel->get();
+
+
+		foreach ($drivers as $driver) {
+
+
+			$driverData = [
+				'driver' => trim($driver->last_name . ", " . $driver->first_name . " " . $driver->middle_name . " " . $driver->suffix),
+			];
+
+			$total = 0;
+			$products = $productModel->get();
+
+			foreach ($products as $product) {
+
+
+				if (in_array(strtolower($product->product), ['diesel', 'premium', 'regular'])) {
+
+					$whereData = array(
+						'driver.id' => $driver->id,
+						'product.id' => $product->id,
+					);
+					$result = $tripTicketModel->get_total_by_driver_by_product($whereData);
+
+					// Append the product data to the driver data array
+					$driverData[strtolower($result->product)] = $result->purchased > 0 ? number_format($result->purchased, 2, '.', ',') : 0;
+
+					$total += $result->purchased;
+				}
+
+
+			}
+
+			$driverData['total'] = number_format($total, 2, '.', ',');
+
+			$data[] = $driverData;
+
+		}
+
+
+		usort($data, function ($a, $b) {
+			return $b['total'] <=> $a['total'];
+		});
+
+		$top10 = array_slice($data, 0, 10);
+		$this->response($top10, RestController::HTTP_OK);
+
+	}
+
 	public function find_get($id)
 	{
 

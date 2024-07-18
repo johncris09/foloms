@@ -15,6 +15,7 @@ class Product extends RestController
 		// Construct the parent class
 		parent::__construct();
 		$this->load->model('ProductModel');
+		$this->load->model('TripTicketModel');
 
 	}
 
@@ -23,6 +24,40 @@ class Product extends RestController
 		$productModel = new ProductModel;
 		$result = $productModel->get();
 		$this->response($result, RestController::HTTP_OK);
+	}
+	public function total_consumption_get()
+	{
+
+		$tripTicketModel = new TripTicketModel;
+		$productModel = new ProductModel;
+		$data = [];
+		$classname = ['bg-c-blue', 'bg-c-green', 'bg-c-yellow'];
+		$products = $productModel->get();
+		$counter = 0;
+		foreach ($products as $product) {
+
+
+			if (in_array(strtolower($product->product), ['diesel', 'premium', 'regular'])) {
+
+				$result = $tripTicketModel->get_total_consumption(['trip_ticket.product' => $product->id]);
+
+				if ($result->product) {
+
+					$data[] = array(
+						'product' => $result->product,
+						'total_consumption' => number_format($result->total_consumption, 2, '.', ','),
+						'classname' => $classname[$counter],
+
+					);
+					$counter++;
+
+
+				}
+			}
+
+		}
+
+		$this->response($data, RestController::HTTP_OK);
 	}
 	public function find_get($id)
 	{
@@ -42,7 +77,7 @@ class Product extends RestController
 
 
 		$data = array(
-			'product' => $requestData['product'], 
+			'product' => $requestData['product'],
 		);
 
 
@@ -71,7 +106,7 @@ class Product extends RestController
 		$requestData = json_decode($this->input->raw_input_stream, true);
 		if (isset($requestData['product'])) {
 			$data['product'] = $requestData['product'];
-		}  
+		}
 		$update_result = $productModel->update($id, $data);
 
 		if ($update_result > 0) {
@@ -87,7 +122,7 @@ class Product extends RestController
 			], RestController::HTTP_BAD_REQUEST);
 
 		}
-	} 
+	}
 
 
 	public function delete_delete($id)
@@ -107,6 +142,6 @@ class Product extends RestController
 			], RestController::HTTP_BAD_REQUEST);
 
 		}
-	} 
+	}
 
 }

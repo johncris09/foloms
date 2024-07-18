@@ -15,6 +15,8 @@ class Office extends RestController
 		// Construct the parent class
 		parent::__construct();
 		$this->load->model('OfficeModel');
+		$this->load->model('ProductModel');
+		$this->load->model('TripTicketModel');
 
 	}
 
@@ -23,6 +25,60 @@ class Office extends RestController
 		$officeModel = new OfficeModel;
 		$result = $officeModel->get();
 		$this->response($result, RestController::HTTP_OK);
+	}
+	public function top_consumption_get()
+	{
+		$officeModel = new OfficeModel;
+		$productModel = new ProductModel;
+		$tripTicketModel = new TripTicketModel;
+		$data = [];
+
+		$offices = $officeModel->get();
+
+
+		foreach ($offices as $office) {
+
+			$officeData = [
+				'office' => $office->office,
+			];
+
+			$total = 0;
+			$products = $productModel->get();
+
+			foreach ($products as $product) {
+
+
+				if (in_array(strtolower($product->product), ['diesel', 'premium', 'regular'])) {
+
+					$whereData = array(
+						'office.id' => $office->id,
+						'product.id' => $product->id,
+					);
+					$result = $tripTicketModel->get_total_by_office_by_product($whereData, $product->product);
+
+					// Append the product data to the office data array
+					$officeData[strtolower($result->product)] = $result->purchased > 0 ? number_format($result->purchased, 2, '.', ',') : 0;
+
+					$total += $result->purchased;
+
+				}
+
+			}
+
+			$officeData['total'] = number_format($total, 2, '.', ',');
+
+			$data[] = $officeData;
+
+		}
+
+
+		usort($data, function ($a, $b) {
+			return $b['total'] <=> $a['total'];
+		});
+
+		$top10 = array_slice($data, 0, 10);
+		$this->response($top10, RestController::HTTP_OK);
+
 	}
 	public function find_get($id)
 	{

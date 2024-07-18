@@ -270,5 +270,97 @@ class TripTicketModel extends CI_Model
 	}
 
 
+	public function get_total_consumption($data)
+	{
+		$this->db->select('
+			product.product,
+			sum(trip_ticket.gasoline_issued_by_office + trip_ticket.gasoline_purchased)  total_consumption, 
+		')
+			->from('trip_ticket')
+			->join('product', 'trip_ticket.product = product.id', 'LEFT')
+			->where($data);
 
+		$query = $this->db->get();
+		// return $query;
+		return $query->row();
+	}
+
+
+
+
+	public function get_total_by_office_by_product($data, $as)
+	{
+		$this->db->select('
+				office.id, office.office,  
+				product.product,
+				SUM(trip_ticket.gasoline_issued_by_office + trip_ticket.gasoline_purchased) AS purchased
+			')
+			->from('trip_ticket')
+			->join('equipment', 'trip_ticket.equipment = equipment.id', 'LEFT')
+			->join('office', 'equipment.office = office.id', 'LEFT')
+			->join('product', 'trip_ticket.product = product.id', 'LEFT')
+			->where($data);
+
+		$query = $this->db->get();
+		// return $query;
+		return $query->row();
+	}
+
+
+	public function get_total_by_driver_by_product($data)
+	{
+		$this->db->select('
+				driver.id, 
+				driver.last_name,  
+				driver.first_name,  
+				driver.middle_name,
+				driver.suffix,  
+				product.product,
+				SUM(trip_ticket.gasoline_issued_by_office + trip_ticket.gasoline_purchased) AS purchased
+			')
+			->from('trip_ticket')
+			->join('driver', 'trip_ticket.driver = driver.id', 'LEFT')
+			->join('product', 'trip_ticket.product = product.id', 'LEFT')
+			->where($data);
+
+		$query = $this->db->get();
+		// return $query;
+		return $query->row();
+	}
+
+
+
+	public function get_total_by_equipment_by_product($data)
+	{
+		$this->db->select('
+				equipment.id, 
+				product.product,
+				SUM(trip_ticket.gasoline_issued_by_office + trip_ticket.gasoline_purchased) AS purchased
+			')
+			->from('trip_ticket')
+			->join('equipment', 'trip_ticket.equipment = equipment.id', 'LEFT')
+			->join('product', 'trip_ticket.product = product.id', 'LEFT')
+			->where($data);
+
+		$query = $this->db->get();
+		// return $query;
+		return $query->row();
+	}
+
+
+	public function get_product_consumption_trend($data)
+	{
+		$this->db->select('
+				product.product,
+				SUM(trip_ticket.gasoline_issued_by_office + trip_ticket.gasoline_purchased) AS purchased
+			')
+			->from('trip_ticket')
+			->join('product', 'trip_ticket.product = product.id', 'LEFT')
+
+			->where($data);
+
+		$query = $this->db->get();
+
+		return $query->row();
+	}
 }

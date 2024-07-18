@@ -15,6 +15,8 @@ class Equipment extends RestController
 		// Construct the parent class
 		parent::__construct();
 		$this->load->model('EquipmentModel');
+		$this->load->model('TripTicketModel');
+		$this->load->model('ProductModel');
 
 	}
 
@@ -24,6 +26,67 @@ class Equipment extends RestController
 		$result = $equipmentModel->get();
 		$this->response($result, RestController::HTTP_OK);
 	}
+
+	public function top_consumption_get()
+	{
+		$equipmentModel = new EquipmentModel;
+		$productModel = new ProductModel;
+		$tripTicketModel = new TripTicketModel;
+		$data = [];
+
+		$equipments = $equipmentModel->get();
+
+
+		foreach ($equipments as $equipment) {
+
+
+
+			$equipmentData = [
+				'model' => trim($equipment->model),
+				'plate_number' => trim($equipment->plate_number),
+			];
+
+			$total = 0;
+			$products = $productModel->get();
+
+			foreach ($products as $product) {
+
+				if (in_array(strtolower($product->product), ['diesel', 'premium', 'regular'])) {
+
+					$whereData = array(
+						'equipment.id' => $equipment->id,
+						'product.id' => $product->id,
+					);
+					$result = $tripTicketModel->get_total_by_equipment_by_product($whereData);
+
+
+					// Append the product data to the driver data array
+					$equipmentData[strtolower($result->product)] = $result->purchased > 0 ? number_format($result->purchased, 2, '.', ',') : 0;
+
+					$total += $result->purchased;
+				}
+
+
+			}
+
+			$equipmentData['total'] = number_format($total, 2, '.', ',');
+
+			$data[] = $equipmentData;
+
+		}
+
+
+		usort($data, function ($a, $b) {
+			return $b['total'] <=> $a['total'];
+		});
+
+		$top10 = array_slice($data, 0, 10);
+		$this->response($top10, RestController::HTTP_OK);
+
+	}
+
+
+
 	public function find_get($id)
 	{
 

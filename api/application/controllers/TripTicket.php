@@ -16,6 +16,7 @@ class TripTicket extends RestController
 		parent::__construct();
 		$this->load->model('TripTicketModel');
 		$this->load->model('ControlNumberModel');
+		$this->load->model('ProductModel');
 
 	}
 
@@ -25,6 +26,66 @@ class TripTicket extends RestController
 		$result = $tripTicketModel->get();
 		$this->response($result, RestController::HTTP_OK);
 	}
+
+
+	public function product_consumption_trend_get()
+	{
+		$tripTicketModel = new TripTicketModel;
+		$productModel = new ProductModel;
+		$currentYear = date('Y');
+
+		$products = $productModel->get();
+
+		$categories = [];
+		$seriesData = [];
+
+		// Initialize series data array
+		foreach ($products as $product) {
+			if (in_array(strtolower($product->product), ['diesel', 'premium', 'regular'])) {
+				$seriesData[$product->product] = [
+					'name' => $product->product,
+					'data' => array_fill(0, 12, 0)
+				];
+			}
+		}
+
+		// Loop through each month of the current year
+		for ($month = 1; $month <= 12; $month++) {
+			// Create a DateTime object for the first day of each month
+			$date = DateTime::createFromFormat('Y-m-d', "$currentYear-$month-01");
+
+			// Get the month name
+			$categories[] = $date->format('F');
+			$monthFormatted = $date->format('m');
+
+			foreach ($products as $product) {
+				if (in_array(strtolower($product->product), ['diesel', 'premium', 'regular'])) {
+					$trendData = array(
+						'trip_ticket.product' => $product->id,
+						'month(purchase_date)' => $monthFormatted,
+						'year(purchase_date)' => $currentYear,
+					);
+
+					$result = $tripTicketModel->get_product_consumption_trend($trendData);
+
+					if ($result) {
+						$seriesData[$product->product]['data'][$month - 1] = floatval($result->purchased);
+					}
+				}
+			}
+		}
+
+		// Prepare the final data structure
+		$finalData = [
+			'categories' => $categories,
+			'series' => array_values($seriesData)
+		];
+
+
+		$this->response($finalData, RestController::HTTP_OK);
+	}
+
+
 	public function find_get($id)
 	{
 
@@ -106,6 +167,7 @@ class TripTicket extends RestController
 			], RestController::HTTP_BAD_REQUEST);
 		}
 	}
+
 
 	public function update_put($id)
 	{
