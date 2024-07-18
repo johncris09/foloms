@@ -404,9 +404,9 @@ const TripTicket = ({ cardTitle }) => {
       }
       form.resetForm()
 
-      if (tripTicketRemarksInputRef.current) {
-        tripTicketRemarksInputRef.current.value = ''
-      }
+      // if (tripTicketRemarksInputRef.current) {
+      //   tripTicketRemarksInputRef.current.value = ''
+      // }
       tripTicketProductInputRef.current.clearValue()
       tripTicketDriverInputRef.current.clearValue()
       tripTicketEquipmentInputRef.current.clearValue()

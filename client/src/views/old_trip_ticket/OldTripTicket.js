@@ -347,7 +347,7 @@ const OldTripTicket = ({ cardTitle }) => {
       speedometer_start: '',
       speedometer_end: '',
       distance_traveled: '',
-      remarks: '',
+      remarks: 'Distance travel is only an estimate',
       times: '',
       job_description: '',
       user_id: '',
@@ -372,9 +372,9 @@ const OldTripTicket = ({ cardTitle }) => {
         toast.success(response.data.message)
       }
       form.resetForm()
-      if (tripTicketRemarksInputRef.current) {
-        tripTicketRemarksInputRef.current.value = ''
-      }
+      // if (tripTicketRemarksInputRef.current) {
+      //   tripTicketRemarksInputRef.current.value = ''
+      // }
       tripTicketProductInputRef.current.clearValue()
       tripTicketDriverInputRef.current.clearValue()
       tripTicketEquipmentInputRef.current.clearValue()
