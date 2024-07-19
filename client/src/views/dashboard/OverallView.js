@@ -1,17 +1,123 @@
-import { CCard, CCardBody } from '@coreui/react'
+import { cilFilter } from '@coreui/icons'
+import CIcon from '@coreui/icons-react'
+import {
+  CButtonGroup,
+  CCard,
+  CCardBody,
+  CDropdown,
+  CDropdownDivider,
+  CDropdownItem,
+  CDropdownMenu,
+  CDropdownToggle,
+} from '@coreui/react'
 import { Skeleton } from '@mui/material'
 import React from 'react'
 import ApexCharts from 'react-apexcharts'
+import { api } from 'src/components/SystemConfiguration'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 const OverallView = ({ productConsumptionTrend }) => {
-  console.info(productConsumptionTrend.isLoading)
+  const queryClient = useQueryClient()
+  const handleSubmit = async (event, data) => {
+    await filter.mutate(data)
+  }
+
+  const filter = useMutation({
+    mutationKey: ['filterProductConsumptionTrend'],
+    mutationFn: async (values) => {
+      const response = await api.get('trip_ticket/filter_product_consumption_trend', {
+        params: values,
+      })
+      return response
+    },
+    onSuccess: async (response) => {
+      await queryClient.setQueryData(['productConsumptionTrend'], response.data)
+    },
+    onError: (error) => {
+      console.info(error.response.data)
+      // toast.error(error.response.data.message)
+    },
+  })
+
+  // Array of month names and their corresponding numbers (1-based index)
+  const months = [
+    { name: 'January', number: 1 },
+    { name: 'February', number: 2 },
+    { name: 'March', number: 3 },
+    { name: 'April', number: 4 },
+    { name: 'May', number: 5 },
+    { name: 'June', number: 6 },
+    { name: 'July', number: 7 },
+    { name: 'August', number: 8 },
+    { name: 'September', number: 9 },
+    { name: 'October', number: 10 },
+    { name: 'November', number: 11 },
+    { name: 'December', number: 12 },
+  ]
+
+  const getCurrentMonthNumber = () => {
+    const date = new Date()
+    return date.getMonth() + 1 // getMonth() returns 0-based index, so add 1
+  }
+
+  const currentMonthNumber = getCurrentMonthNumber()
+
   return (
     <>
-      {productConsumptionTrend.isLoading ? (
-        <Skeleton variant="rounded" width={'100%'} height={450} style={{ marginBottom: '30px' }} />
-      ) : (
-        <CCard>
-          <CCardBody>
+      <CCard>
+        <CCardBody>
+          <div className="d-flex justify-content-between">
+            <div>
+              <p className="h6">Fuel Consumption Overview</p>
+            </div>
+
+            <div style={{ marginTop: -10 }}>
+              <CButtonGroup>
+                <CDropdown>
+                  <CDropdownToggle color="transparent" variant="outline" caret={false}>
+                    <CIcon icon={cilFilter} />
+                  </CDropdownToggle>
+                  <CDropdownMenu>
+                    <CDropdownItem
+                      onClick={(e) =>
+                        handleSubmit(e, { filter_by: 'month', month: currentMonthNumber })
+                      }
+                    >
+                      This Month
+                    </CDropdownItem>
+                    <CDropdownItem onClick={(e) => handleSubmit(e, { filter_by: 'year' })}>
+                      This Year
+                    </CDropdownItem>
+                    <CDropdownDivider />
+                    {months.map((month, index) => (
+                      <CDropdownItem
+                        key={index}
+                        onClick={(e) =>
+                          handleSubmit(e, { filter_by: 'month', month: month.number })
+                        }
+                      >
+                        {month.name}
+                      </CDropdownItem>
+                    ))}
+
+                    <CDropdownDivider />
+                    <CDropdownItem onClick={(e) => handleSubmit(e, { filter_by: 'year' })}>
+                      Clear Filter
+                    </CDropdownItem>
+                  </CDropdownMenu>
+                </CDropdown>
+              </CButtonGroup>
+            </div>
+          </div>
+
+          {productConsumptionTrend.isLoading || filter.isPending ? (
+            <Skeleton
+              variant="rounded"
+              width={'100%'}
+              height={390}
+              style={{ marginBottom: '30px' }}
+            />
+          ) : (
             <ApexCharts
               options={{
                 chart: {
@@ -21,6 +127,7 @@ const OverallView = ({ productConsumptionTrend }) => {
                   enabled: false,
                 },
                 stroke: {
+                  curve: 'smooth',
                   width: 3,
                 },
                 markers: {
@@ -29,15 +136,11 @@ const OverallView = ({ productConsumptionTrend }) => {
                   strokeColor: 'gray',
                   strokeWidth: 1,
                 },
-
                 grid: {
-                  borderColor: '#555',
-                  clipMarkers: false,
-                  yaxis: {
-                    lines: {
-                      show: false,
-                    },
-                  },
+                  show: true, // Enable or disable the grid
+                  borderColor: '#e7e7e7', // Set the color of the grid lines
+                  strokeDashArray: 0, // Set the style of the grid lines (e.g., dashed lines)
+                  position: 'back', // Position the grid lines (e.g., 'back' or 'front')
                 },
 
                 fill: {
@@ -55,20 +158,23 @@ const OverallView = ({ productConsumptionTrend }) => {
                   // },
                 },
                 xaxis: {
-                  categories: !productConsumptionTrend.isLoading
-                    ? productConsumptionTrend?.data?.categories
-                    : [],
+                  categories:
+                    !productConsumptionTrend.isLoading || filter.isPending
+                      ? productConsumptionTrend?.data?.categories
+                      : [],
                 },
               }}
               series={
-                !productConsumptionTrend.isLoading ? productConsumptionTrend?.data?.series : []
+                !productConsumptionTrend.isLoading || filter.isPending
+                  ? productConsumptionTrend?.data?.series
+                  : []
               }
               type="area"
               height={400}
             />
-          </CCardBody>
-        </CCard>
-      )}
+          )}
+        </CCardBody>
+      </CCard>
     </>
   )
 }

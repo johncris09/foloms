@@ -85,6 +85,139 @@ class TripTicket extends RestController
 		$this->response($finalData, RestController::HTTP_OK);
 	}
 
+	public function filter_product_consumption_trend_get()
+	{
+
+		$tripTicketModel = new TripTicketModel;
+		$productModel = new ProductModel;
+
+		$products = $productModel->get();
+		$requestData = $this->input->get();
+
+		$finalData = [];
+
+		if ($requestData['filter_by'] === 'month') {
+
+
+
+
+			$categories = [];
+			$seriesData = [];
+
+
+			$currentYear = date('Y');
+			$currentMonth = $requestData['month'];
+
+			// Initialize series data array
+			foreach ($products as $product) {
+				if (in_array(strtolower($product->product), ['diesel', 'premium', 'regular'])) {
+					$seriesData[$product->product] = [
+						'name' => $product->product,
+						'data' => array_fill(0, 12, 0)
+					];
+				}
+			}
+
+
+			$startDate = DateTime::createFromFormat('Y-m-d', "$currentYear-$currentMonth-01");
+
+			// Get the number of days in the specified month
+			$daysInMonth = $startDate->format('t');
+
+			for ($day = 1; $day <= $daysInMonth; $day++) {
+				// Create a DateTime object for each day of the month
+				$date = DateTime::createFromFormat('Y-m-d', "$currentYear-$currentMonth-$day");
+
+				// Get the day formatted as 'd'
+				$dayFormatted = $date->format('d');
+
+				// Add the day to the categories array
+				$categories[] = $date->format('j'); // 'j' format will give day of the month without leading zeros
+
+				foreach ($products as $product) {
+					if (in_array(strtolower($product->product), ['diesel', 'premium', 'regular'])) {
+						$trendData = array(
+							'trip_ticket.product' => $product->id,
+							'day(purchase_date)' => $dayFormatted,
+							'month(purchase_date)' => $currentMonth,
+							'year(purchase_date)' => $currentYear,
+						);
+
+						$result = $tripTicketModel->get_product_consumption_trend($trendData);
+
+						if ($result) {
+							$seriesData[$product->product]['data'][$day - 1] = floatval($result->purchased);
+						}
+					}
+				}
+			}
+
+			// Prepare the final data structure
+			$finalData = [
+				'categories' => $categories,
+				'series' => array_values($seriesData)
+			];
+
+
+
+		}
+
+		if ($requestData['filter_by'] === 'year') {
+
+
+			$currentYear = date('Y');
+
+
+			$categories = [];
+			$seriesData = [];
+
+			// Initialize series data array
+			foreach ($products as $product) {
+				if (in_array(strtolower($product->product), ['diesel', 'premium', 'regular'])) {
+					$seriesData[$product->product] = [
+						'name' => $product->product,
+						'data' => array_fill(0, 12, 0)
+					];
+				}
+			}
+
+			// Loop through each month of the current year
+			for ($month = 1; $month <= 12; $month++) {
+				// Create a DateTime object for the first day of each month
+				$date = DateTime::createFromFormat('Y-m-d', "$currentYear-$month-01");
+
+				// Get the month name
+				$categories[] = $date->format('F');
+				$monthFormatted = $date->format('m');
+
+				foreach ($products as $product) {
+					if (in_array(strtolower($product->product), ['diesel', 'premium', 'regular'])) {
+						$trendData = array(
+							'trip_ticket.product' => $product->id,
+							'month(purchase_date)' => $monthFormatted,
+							'year(purchase_date)' => $currentYear,
+						);
+
+						$result = $tripTicketModel->get_product_consumption_trend($trendData);
+
+						if ($result) {
+							$seriesData[$product->product]['data'][$month - 1] = floatval($result->purchased);
+						}
+					}
+				}
+			}
+
+			// Prepare the final data structure
+			$finalData = [
+				'categories' => $categories,
+				'series' => array_values($seriesData)
+			];
+
+		}
+		$this->response($finalData, RestController::HTTP_OK);
+
+	}
+
 
 	public function find_get($id)
 	{
