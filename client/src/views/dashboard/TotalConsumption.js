@@ -10,6 +10,7 @@ import { faGasPump, faPesoSign } from '@fortawesome/free-solid-svg-icons'
 const TotalConsumption = ({ totalConsumption }) => {
   return (
     <>
+      <h6>Total Fuel Consumption</h6>
       <CRow>
         {totalConsumption?.isLoading
           ? [...Array(3)].map((_, index) => (
@@ -31,9 +32,7 @@ const TotalConsumption = ({ totalConsumption }) => {
 
                       <h2 className="m-b-0">
                         <FontAwesomeIcon className="f-left" icon={faGasPump} />
-                        <span className="f-right">
-                          <FontAwesomeIcon icon={faPesoSign} /> {item.total_consumption}
-                        </span>
+                        <span className="f-right">{item.total_consumption}</span>
                       </h2>
                     </div>
                   </div>
