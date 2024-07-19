@@ -15,7 +15,6 @@ import {
   CTableHeaderCell,
   CTableRow,
 } from '@coreui/react'
-
 const TopDriverConsumption = ({ topDriverConsumption }) => {
   return (
     <Card>
@@ -26,6 +25,7 @@ const TopDriverConsumption = ({ topDriverConsumption }) => {
           </CTableCaption>
           <CTableHead>
             <CTableRow>
+              <CTableHeaderCell>#</CTableHeaderCell>
               <CTableHeaderCell>Driver&apos;s Name</CTableHeaderCell>
               <CTableHeaderCell>Diesel</CTableHeaderCell>
               <CTableHeaderCell>Premium</CTableHeaderCell>
@@ -37,6 +37,13 @@ const TopDriverConsumption = ({ topDriverConsumption }) => {
             {topDriverConsumption?.isLoading
               ? [...Array(10)].map((_, IndexCol) => (
                   <CTableRow key={IndexCol}>
+                    <CTableDataCell>
+                      <Skeleton
+                        variant="rounded"
+                        width={'120%'}
+                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.11)', margin: 'auto' }}
+                      />
+                    </CTableDataCell>
                     <CTableDataCell>
                       <Skeleton
                         variant="rounded"
@@ -77,6 +84,7 @@ const TopDriverConsumption = ({ topDriverConsumption }) => {
               : topDriverConsumption?.data?.map((item, index) => {
                   return (
                     <CTableRow key={index}>
+                      <CTableDataCell>{index + 1}</CTableDataCell>
                       <CTableDataCell>{item.driver}</CTableDataCell>
                       <CTableDataCell>{item.diesel}</CTableDataCell>
                       <CTableDataCell>{item.premium}</CTableDataCell>

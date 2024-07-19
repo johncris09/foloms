@@ -24,7 +24,8 @@ const TopEquipmentConsumption = ({ topEquipmentConsumption }) => {
           </CTableCaption>
           <CTableHead>
             <CTableRow>
-              <CTableHeaderCell>Model</CTableHeaderCell>
+              <CTableHeaderCell>#</CTableHeaderCell>
+              <CTableHeaderCell colSpan={2}>Model</CTableHeaderCell>
               <CTableHeaderCell>Diesel</CTableHeaderCell>
               <CTableHeaderCell>Premium</CTableHeaderCell>
               <CTableHeaderCell>Regular</CTableHeaderCell>
@@ -35,6 +36,13 @@ const TopEquipmentConsumption = ({ topEquipmentConsumption }) => {
             {topEquipmentConsumption?.isLoading
               ? [...Array(10)].map((_, IndexCol) => (
                   <CTableRow key={IndexCol}>
+                    <CTableDataCell>
+                      <Skeleton
+                        variant="rounded"
+                        width={'120%'}
+                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.11)', margin: 'auto' }}
+                      />
+                    </CTableDataCell>
                     <CTableDataCell>
                       <Skeleton
                         variant="rounded"
@@ -75,6 +83,8 @@ const TopEquipmentConsumption = ({ topEquipmentConsumption }) => {
               : topEquipmentConsumption?.data?.map((item, index) => {
                   return (
                     <CTableRow key={index}>
+                      <CTableDataCell>{index + 1}</CTableDataCell>
+                      <CTableDataCell>{item.plate_number}</CTableDataCell>
                       <CTableDataCell>{item.model}</CTableDataCell>
                       <CTableDataCell>{item.diesel}</CTableDataCell>
                       <CTableDataCell>{item.premium}</CTableDataCell>
