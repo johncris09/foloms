@@ -5,7 +5,6 @@ import 'animate.css'
 import 'intro.js/introjs.css'
 import {
   CCardBody,
-  CCol,
   CRow,
   CTable,
   CTableBody,
@@ -22,10 +21,15 @@ const TopOfficeConsumption = ({ topOfficeConsumption }) => {
       <CCardBody className="p-2">
         <CTable caption="top" responsive>
           <CTableCaption>
-            <h6>Top Office Fuel Consumption Report</h6>
+            <div className="d-flex justify-content-between">
+              <div>
+                <h6>Top Office Fuel Consumption Report</h6>
+              </div>
+            </div>
           </CTableCaption>
           <CTableHead>
             <CTableRow>
+              <CTableHeaderCell>#</CTableHeaderCell>
               <CTableHeaderCell>Office</CTableHeaderCell>
               <CTableHeaderCell>Diesel</CTableHeaderCell>
               <CTableHeaderCell>Premium</CTableHeaderCell>
@@ -37,6 +41,13 @@ const TopOfficeConsumption = ({ topOfficeConsumption }) => {
             {topOfficeConsumption?.isLoading
               ? [...Array(10)].map((_, IndexCol) => (
                   <CTableRow key={IndexCol}>
+                    <CTableDataCell>
+                      <Skeleton
+                        variant="rounded"
+                        width={'30%'}
+                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.11)', margin: 'auto' }}
+                      />
+                    </CTableDataCell>
                     <CTableDataCell>
                       <Skeleton
                         variant="rounded"
@@ -77,6 +88,7 @@ const TopOfficeConsumption = ({ topOfficeConsumption }) => {
               : topOfficeConsumption?.data?.map((item, index) => {
                   return (
                     <CTableRow key={index}>
+                      <CTableDataCell>{index + 1}</CTableDataCell>
                       <CTableDataCell>{item.office}</CTableDataCell>
                       <CTableDataCell>{item.diesel}</CTableDataCell>
                       <CTableDataCell>{item.premium}</CTableDataCell>
