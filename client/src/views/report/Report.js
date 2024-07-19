@@ -12,7 +12,7 @@ import DailyFuelConsumptionReport from './DailyFuelConsumptionReport'
 import PageTitle from 'src/components/PageTitle'
 
 const Report = ({ cardTitle }) => {
-  const [activeKey, setActiveKey] = useState(1)
+  const [activeKey, setActiveKey] = useState(4)
   const [chunks, setChunks] = useState([])
   const [totalChunks, setTotalChunks] = useState(2)
   const queryClient = useQueryClient()
@@ -287,7 +287,7 @@ const Report = ({ cardTitle }) => {
                 Monthly Report
               </CNavLink>
             </CNavItem>
-            <CNavItem role="presentation">
+            {/* <CNavItem role="presentation">
               <CNavLink
                 active={activeKey === 2}
                 component="button"
@@ -316,7 +316,7 @@ const Report = ({ cardTitle }) => {
               >
                 Daily Oil & Lubricant Request
               </CNavLink>
-            </CNavItem>
+            </CNavItem> */}
             <CNavItem role="presentation">
               <CNavLink
                 active={activeKey === 4}

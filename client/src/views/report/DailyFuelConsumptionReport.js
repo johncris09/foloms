@@ -202,6 +202,7 @@ const DailyFuelConsumptionReport = ({ cardTitle }) => {
       borderWidth: 1,
       borderLeftWidth: 0,
       borderTopWidth: 0,
+      textAlign: 'right',
     },
     tableCol11: {
       width: `${6}%`,
@@ -591,22 +592,7 @@ const DailyFuelConsumptionReport = ({ cardTitle }) => {
                               </Text>
                             </View>
                             <View style={styles.tableCol3}>
-                              <Text style={styles.tableCell}>
-                                {(() => {
-                                  const purchaseDate = row.purchase_date // Assuming the format is YYYY-MM-DD
-                                  let formattedDate = ''
-
-                                  if (purchaseDate) {
-                                    const [year, month, day] = purchaseDate.split('-')
-                                    if (year && month && day) {
-                                      const formattedYear = year.slice(2) // Get the last two digits of the year
-                                      formattedDate = `${month}/${day}/${formattedYear}`
-                                    }
-                                  }
-
-                                  return formattedDate
-                                })()}
-                              </Text>
+                              <Text style={styles.tableCell}>{row.purchase_date}</Text>
                             </View>
                             <View style={styles.tableCol4}>
                               <Text style={styles.tableCell}>{row.plate_number}</Text>
@@ -615,19 +601,11 @@ const DailyFuelConsumptionReport = ({ cardTitle }) => {
                               <Text style={styles.tableCell}>{row.model}</Text>
                             </View>
                             <View style={styles.tableCol6}>
-                              <Text style={styles.tableCell}>
-                                {`${row.last_name}, ${row.first_name} ${
-                                  row.middle_name
-                                    ? row.middle_name.length === 1
-                                      ? row.middle_name + '.'
-                                      : row.middle_name.substring(0, 1) + '.'
-                                    : ''
-                                }   ${row.suffix ? row.suffix : ''}`}
-                              </Text>
+                              <Text style={styles.tableCell}>{row.driver}</Text>
                             </View>
 
                             <View style={styles.tableCol7}>
-                              <Text style={styles.tableCell}>{row.abbr}</Text>
+                              <Text style={styles.tableCell}>{row.office}</Text>
                             </View>
                             <View style={styles.tableCol8}>
                               <Text style={styles.tableCell}>{row.purposes}</Text>
@@ -636,30 +614,13 @@ const DailyFuelConsumptionReport = ({ cardTitle }) => {
                               <Text style={styles.tableCell}>{row.product}</Text>
                             </View>
                             <View style={styles.tableCol10}>
-                              <Text style={styles.tableCell}>
-                                {row.unit_cost.toLocaleString('en-US', {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2,
-                                })}
-                              </Text>
+                              <Text style={styles.tableCell}>{row.unit_cost}</Text>
                             </View>
                             <View style={{ ...styles.tableCol11, textAlign: 'right' }}>
-                              <Text style={styles.tableCell}>
-                                {row.gasoline_purchased.toLocaleString('en-US', {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2,
-                                })}
-                              </Text>
+                              <Text style={styles.tableCell}>{row.gasoline_purchased}</Text>
                             </View>
                             <View style={{ ...styles.tableCol12, textAlign: 'right' }}>
-                              <Text style={styles.tableCell}>
-                                {(
-                                  parseFloat(row.unit_cost) * parseFloat(row.gasoline_purchased)
-                                ).toLocaleString('en-US', {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2,
-                                })}
-                              </Text>
+                              <Text style={styles.tableCell}>{row.gross_amount}</Text>
                             </View>
                           </View>
                         </React.Fragment>
@@ -789,21 +750,14 @@ const DailyFuelConsumptionReport = ({ cardTitle }) => {
                                     <Text style={styles2.tableCell}>{row.product}</Text>
                                   </View>
                                   <View style={styles2.tableCol}>
-                                    <Text style={styles2.tableCell}>
-                                      {parseFloat(row.total_purchase).toFixed(2)}
-                                    </Text>
+                                    <Text style={styles2.tableCell}>{row.total_purchase}</Text>
                                   </View>
                                   <View style={styles2.tableCol}>
-                                    <Text style={styles2.tableCell}>
-                                      {row.total_unit_cost.toLocaleString('en-US', {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2,
-                                      })}
-                                    </Text>
+                                    <Text style={styles2.tableCell}>{row.total_cost}</Text>
                                   </View>
                                   <View style={styles2.tableColTotalAmount}>
                                     <Text style={styles2.tableCell}>
-                                      {(row.total_purchase * row.total_unit_cost).toLocaleString(
+                                      {(row.total_purchase * row.total_cost).toLocaleString(
                                         'en-US',
                                         {
                                           minimumFractionDigits: 2,

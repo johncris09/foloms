@@ -1,7 +1,19 @@
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import Select from 'react-select'
-import { Page, Text, View, Document, StyleSheet, PDFViewer, Font, Image } from '@react-pdf/renderer'
-import monthlyReportTemplate from './../../assets/images/template/monthly_report 1.png'
+import {
+  Page,
+  Text,
+  View,
+  Document,
+  StyleSheet,
+  PDFViewer,
+  Font,
+  Image,
+  Svg,
+  Line,
+} from '@react-pdf/renderer'
+import monthlyReportTemplate1 from './../../assets/images/template/monthly_report 1.png'
+import monthlyReportTemplate2 from './../../assets/images/template/monthly_report 2.png'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFilter } from '@fortawesome/free-solid-svg-icons'
 import { useFormik } from 'formik'
@@ -12,9 +24,10 @@ import { format, parse } from 'date-fns'
 import { CDateRangePicker } from '@coreui/react-pro'
 import PageTitle from 'src/components/PageTitle'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { jwtDecode } from 'jwt-decode'
 
 const MonthlyReport = ({ cardTitle }) => {
-  const queryClient = useQueryClient()
+  const user = jwtDecode(localStorage.getItem('folomsToken'))
   const reportTypeInputRef = useRef()
 
   const filter = useFormik({
@@ -36,6 +49,7 @@ const MonthlyReport = ({ cardTitle }) => {
     },
     onSuccess: async (response) => {
       if (response.data.length) {
+        console.info(response.data)
         return response.data
       } else {
         toast.error('No Records Found!')
@@ -163,208 +177,449 @@ const MonthlyReport = ({ cardTitle }) => {
           </CForm>
         </CCol>
         <CCol md={8}>
-          <PDFViewer width="100%" height="750px">
-            <Document
-              author={process.env.REACT_APP_DEVELOPER}
-              title="Monthly Report"
-              keywords="document, pdf"
-              creator={process.env.REACT_APP_DEVELOPER}
-              producer={process.env.REACT_APP_DEVELOPER}
-              pdfVersion="1.3"
-            >
-              {monthlyReport?.data?.data?.map((row, index) => {
-                return (
-                  <React.Fragment key={index}>
-                    <Page>
-                      <View style={{ position: 'relative' }}>
-                        {/* template */}
-                        <Image src={monthlyReportTemplate} />
-                      </View>
-                      <View
-                        style={{
-                          position: 'absolute',
-                          top: 142,
-                          left: 123,
-                          width: 132,
-                          height: 14,
-                          justifyContent: 'center',
-                          // backgroundColor: 'red',
-                          alignItems: 'center',
-                          display: 'flex',
-                        }}
-                      >
-                        <Text style={{ fontSize: 10 }}>
-                          {row.plate_number} {row.model}
-                        </Text>
-                      </View>
-                      <View
-                        style={{
-                          position: 'absolute',
-                          top: 142,
-                          left: 362,
-                          width: 150,
-                          height: 14,
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          display: 'flex',
-                        }}
-                      >
-                        <Text style={{ fontSize: 10 }}></Text>
-                      </View>
-                      <View
-                        style={{
-                          position: 'absolute',
-                          top: 155,
-                          left: 400,
-                          width: 115,
-                          height: 14,
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          display: 'flex',
-                        }}
-                      >
-                        <Text style={{ fontSize: 10 }}>{row.driver_full_name}</Text>
-                      </View>
+          <h6>Print Preview</h6>
+          {filter.values.report_type == 1 && (
+            <PDFViewer width="100%" height="750px">
+              <Document
+                author={process.env.REACT_APP_DEVELOPER}
+                title="Monthly Report"
+                keywords="document, pdf"
+                creator={process.env.REACT_APP_DEVELOPER}
+                producer={process.env.REACT_APP_DEVELOPER}
+                pdfVersion="1.3"
+              >
+                {monthlyReport?.data?.data?.map((row, index) => {
+                  return (
+                    <React.Fragment key={index}>
+                      <Page>
+                        <View style={{ position: 'relative' }}>
+                          <Image src={monthlyReportTemplate1} />
+                        </View>
 
-                      {row.trip_ticket.map((trip_ticket_row, trip_ticket_index) => {
-                        const topPosition = 240 + trip_ticket_index * 13
+                        <View
+                          style={{
+                            position: 'absolute',
+                            top: 142,
+                            left: 123,
+                            width: 180,
+                            height: 14,
+                            justifyContent: 'center',
+                            alignItems: 'left',
+                            display: 'flex',
+                          }}
+                        >
+                          <Text style={{ fontSize: 10 }}>
+                            {row.plate_number} {row.model}
+                          </Text>
+                        </View>
+                        <View
+                          style={{
+                            position: 'absolute',
+                            top: 142,
+                            left: 362,
+                            width: 150,
+                            height: 14,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            display: 'flex',
+                          }}
+                        >
+                          <Text style={{ fontSize: 10 }}></Text>
+                        </View>
+                        <View
+                          style={{
+                            position: 'absolute',
+                            top: 155,
+                            left: 400,
+                            width: 145,
+                            height: 14,
+                            justifyContent: 'center',
+                            alignItems: 'left',
+                            display: 'flex',
+                          }}
+                        >
+                          <Text style={{ fontSize: 10 }}>{row.driver_full_name}</Text>
+                        </View>
 
-                        return (
-                          <React.Fragment key={trip_ticket_index}>
-                            <View
-                              style={{
-                                position: 'absolute',
-                                top: topPosition,
-                                left: 40,
-                                width: 82,
-                                height: 14,
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                display: 'flex',
-                              }}
-                            >
-                              <Text style={{ fontSize: 10 }}>{trip_ticket_row.purchase_date}</Text>
-                            </View>
-                            <View
-                              style={{
-                                position: 'absolute',
-                                top: topPosition,
-                                left: 122,
-                                width: 75,
-                                height: 14,
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                display: 'flex',
-                              }}
-                            >
-                              <Text style={{ fontSize: 10 }}>
-                                {trip_ticket_row.distance_traveled}
-                              </Text>
-                            </View>
-                            <View
-                              style={{
-                                position: 'absolute',
-                                top: topPosition,
-                                left: 196,
-                                width: 75,
-                                height: 14,
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                display: 'flex',
-                              }}
-                            >
-                              <Text style={{ fontSize: 10 }}>
-                                {trip_ticket_row.gasoline_purchased}
-                              </Text>
-                            </View>
+                        {row.trip_ticket.map((trip_ticket_row, trip_ticket_index) => {
+                          const topPosition = 240 + trip_ticket_index * 13
 
-                            <View
-                              style={{
-                                position: 'absolute',
-                                top: topPosition,
-                                left: 271,
-                                width: 67,
-                                height: 14,
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                display: 'flex',
-                              }}
-                            >
-                              <Text style={{ fontSize: 10 }}>
-                                {trip_ticket_row.lubricating_oil_issued_purchased}
-                              </Text>
-                            </View>
-                            <View
-                              style={{
-                                position: 'absolute',
-                                top: topPosition,
-                                left: 338,
-                                width: 73,
-                                height: 14,
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                display: 'flex',
-                              }}
-                            >
-                              <Text style={{ fontSize: 10 }}>
-                                {trip_ticket_row.grease_issued_purchased}
-                              </Text>
-                            </View>
-                            <View
-                              style={{
-                                position: 'absolute',
-                                top: topPosition,
-                                left: 411,
-                                width: 123,
-                                height: 14,
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                display: 'flex',
-                              }}
-                            >
-                              <Text style={{ fontSize: 10 }}>{trip_ticket_row.purposes}</Text>
-                            </View>
-                          </React.Fragment>
-                        )
-                      })}
+                          return (
+                            <React.Fragment key={trip_ticket_index}>
+                              <View
+                                style={{
+                                  position: 'absolute',
+                                  top: topPosition,
+                                  left: 40,
+                                  width: 82,
+                                  height: 14,
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                  display: 'flex',
+                                }}
+                              >
+                                <Text style={{ fontSize: 10 }}>
+                                  {trip_ticket_row.purchase_date}
+                                </Text>
+                              </View>
+                              <View
+                                style={{
+                                  position: 'absolute',
+                                  top: topPosition,
+                                  left: 122,
+                                  width: 75,
+                                  height: 14,
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                  display: 'flex',
+                                }}
+                              >
+                                <Text style={{ fontSize: 10 }}>
+                                  {trip_ticket_row.approximate_distance_traveled}
+                                </Text>
+                              </View>
+                              <View
+                                style={{
+                                  position: 'absolute',
+                                  top: topPosition,
+                                  left: 196,
+                                  width: 75,
+                                  height: 14,
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                  display: 'flex',
+                                }}
+                              >
+                                <Text style={{ fontSize: 10 }}>{trip_ticket_row.sub_total}</Text>
+                              </View>
 
-                      <View
-                        style={{
-                          position: 'absolute',
-                          bottom: 175,
-                          left: 40,
-                          width: 230,
-                          height: 14,
-                          fontFamily: 'Roboto',
-                          fontWeight: 'bold',
-                          justifyContent: 'center',
-                          // backgroundColor: 'red',
-                          alignItems: 'center',
-                          display: 'flex',
-                        }}
-                      >
-                        <Text style={{ fontSize: 10 }}>{officer}</Text>
-                      </View>
+                              <View
+                                style={{
+                                  position: 'absolute',
+                                  top: topPosition,
+                                  left: 271,
+                                  width: 67,
+                                  height: 14,
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                  display: 'flex',
+                                }}
+                              >
+                                <Text style={{ fontSize: 10 }}>
+                                  {trip_ticket_row.lubricating_oil_issued_purchased}
+                                </Text>
+                              </View>
+                              <View
+                                style={{
+                                  position: 'absolute',
+                                  top: topPosition,
+                                  left: 338,
+                                  width: 73,
+                                  height: 14,
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                  display: 'flex',
+                                }}
+                              >
+                                <Text style={{ fontSize: 10 }}>
+                                  {trip_ticket_row.grease_issued_purchased}
+                                </Text>
+                              </View>
+                              <View
+                                style={{
+                                  position: 'absolute',
+                                  top: topPosition,
+                                  left: 411,
+                                  width: 123,
+                                  height: 14,
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                  display: 'flex',
+                                }}
+                              >
+                                <Text style={{ fontSize: 10 }}>{trip_ticket_row.purposes}</Text>
+                              </View>
+                            </React.Fragment>
+                          )
+                        })}
+                        <View
+                          style={{
+                            position: 'absolute',
+                            bottom: 265,
+                            left: 122,
+                            width: 75,
+                            height: 14,
+                            fontFamily: 'Roboto',
+                            fontWeight: 'bold',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            display: 'flex',
+                          }}
+                        >
+                          <Text style={{ fontSize: 10 }}>
+                            {row.total_approximate_distance_traveled}
+                          </Text>
+                        </View>
 
-                      <View
-                        style={{
-                          position: 'absolute',
-                          bottom: 178,
-                          left: 320,
-                          width: 230,
-                          height: 14,
-                          fontFamily: 'Roboto',
-                          fontWeight: 'bold',
-                          justifyContent: 'center',
-                          // backgroundColor: 'red',
-                          alignItems: 'center',
-                          display: 'flex',
-                        }}
-                      >
-                        <Text style={{ fontSize: 10 }}>{row.driver_full_name}</Text>
-                      </View>
+                        <View
+                          style={{
+                            position: 'absolute',
+                            bottom: 265,
+                            left: 196,
+                            width: 75,
+                            height: 14,
+                            fontFamily: 'Roboto',
+                            fontWeight: 'bold',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            display: 'flex',
+                          }}
+                        >
+                          <Text style={{ fontSize: 10 }}>{row.total_purchased}</Text>
+                        </View>
 
-                      {/* <View
+                        <View
+                          style={{
+                            position: 'absolute',
+                            bottom: 265,
+                            left: 271,
+                            width: 67,
+                            height: 14,
+                            fontFamily: 'Roboto',
+                            fontWeight: 'bold',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            display: 'flex',
+                          }}
+                        >
+                          <Text style={{ fontSize: 10 }}>
+                            {row.total_lubricating_oil_issued_purchased}
+                          </Text>
+                        </View>
+                        <View
+                          style={{
+                            position: 'absolute',
+                            bottom: 265,
+                            left: 338,
+                            width: 73,
+                            height: 14,
+                            fontFamily: 'Roboto',
+                            fontWeight: 'bold',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            display: 'flex',
+                          }}
+                        >
+                          <Text style={{ fontSize: 10 }}>{row.total_grease_issued_purchased}</Text>
+                        </View>
+                        <View
+                          style={{
+                            position: 'absolute',
+                            bottom: 175,
+                            left: 40,
+                            width: 230,
+                            height: 14,
+                            fontFamily: 'Roboto',
+                            fontWeight: 'bold',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            display: 'flex',
+                          }}
+                        >
+                          <Text style={{ fontSize: 10 }}>{officer}</Text>
+                        </View>
+
+                        <View
+                          style={{
+                            position: 'absolute',
+                            bottom: 178,
+                            left: 320,
+                            width: 230,
+                            height: 14,
+                            fontFamily: 'Roboto',
+                            fontWeight: 'bold',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            display: 'flex',
+                          }}
+                        >
+                          <Text style={{ fontSize: 10 }}>{row.driver_full_name}</Text>
+                        </View>
+
+                        <View style={styles.footer}>
+                          <Text>
+                            Printed by: {user.first_name} {user.middle_name} {user.last_name}{' '}
+                            {user.suffix}
+                          </Text>
+                          <Text>Printed on: {new Date().toLocaleString()}</Text>
+                        </View>
+                      </Page>
+                    </React.Fragment>
+                  )
+                })}
+              </Document>
+            </PDFViewer>
+          )}
+          {filter.values.report_type == 2 && (
+            <PDFViewer width="100%" height="750px">
+              <Document
+                author={process.env.REACT_APP_DEVELOPER}
+                title="Monthly Report"
+                keywords="document, pdf"
+                creator={process.env.REACT_APP_DEVELOPER}
+                producer={process.env.REACT_APP_DEVELOPER}
+                pdfVersion="1.3"
+              >
+                {monthlyReport?.data?.data?.map((row, index) => {
+                  return (
+                    <React.Fragment key={index}>
+                      <Page>
+                        <View style={{ position: 'relative' }}>
+                          <Image src={monthlyReportTemplate2} />
+                        </View>
+
+                        {row.trip_ticket.map((trip_ticket_row, trip_ticket_index) => {
+                          const topPosition = 240 + trip_ticket_index * 13
+
+                          return (
+                            <React.Fragment key={trip_ticket_index}>
+                              <View
+                                style={{
+                                  position: 'absolute',
+                                  top: topPosition,
+                                  left: 40,
+                                  width: 122,
+                                  height: 14,
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                  display: 'flex',
+                                }}
+                              >
+                                <Text style={{ fontSize: 10 }}>
+                                  {trip_ticket_row.plate_number} {trip_ticket_row.model}
+                                </Text>
+                              </View>
+                              <View
+                                style={{
+                                  position: 'absolute',
+                                  top: topPosition,
+                                  left: 159,
+                                  width: 66,
+                                  height: 14,
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                  display: 'flex',
+                                }}
+                              >
+                                <Text style={{ fontSize: 10 }}>
+                                  {trip_ticket_row.purchase_date}
+                                </Text>
+                              </View>
+                              <View
+                                style={{
+                                  position: 'absolute',
+                                  top: topPosition,
+                                  left: 226,
+                                  width: 64,
+                                  height: 14,
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                  display: 'flex',
+                                }}
+                              >
+                                <Text style={{ fontSize: 10 }}>
+                                  {trip_ticket_row.departure_time}
+                                </Text>
+                              </View>
+
+                              <View
+                                style={{
+                                  position: 'absolute',
+                                  top: topPosition,
+                                  left: 290,
+                                  width: 63,
+                                  height: 14,
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                  display: 'flex',
+                                }}
+                              >
+                                <Text style={{ fontSize: 10 }}>
+                                  {trip_ticket_row.arrival_time_back}
+                                </Text>
+                              </View>
+                              <View
+                                style={{
+                                  position: 'absolute',
+                                  top: topPosition,
+                                  left: 338,
+                                  width: 73,
+                                  height: 14,
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                  display: 'flex',
+                                }}
+                              >
+                                <Text style={{ fontSize: 10 }}>
+                                  {trip_ticket_row.grease_issued_purchased}
+                                </Text>
+                              </View>
+                              <View
+                                style={{
+                                  position: 'absolute',
+                                  top: topPosition,
+                                  left: 451,
+                                  width: 95,
+                                  height: 14,
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                  display: 'flex',
+                                }}
+                              >
+                                <Text style={{ fontSize: 10 }}>
+                                  {trip_ticket_row.total_purchased} L
+                                </Text>
+                              </View>
+                            </React.Fragment>
+                          )
+                        })}
+
+                        <View
+                          style={{
+                            position: 'absolute',
+
+                            bottom: 228,
+                            left: 65,
+                            width: 205,
+                            height: 14,
+                            fontFamily: 'Roboto',
+                            fontWeight: 'bold',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            display: 'flex',
+                          }}
+                        >
+                          <Text style={{ fontSize: 10 }}>{officer}</Text>
+                        </View>
+
+                        <View
+                          style={{
+                            position: 'absolute',
+                            bottom: 228,
+                            left: 360,
+                            width: 180,
+                            height: 14,
+                            fontFamily: 'Roboto',
+                            fontWeight: 'bold',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            display: 'flex',
+                          }}
+                        >
+                          <Text style={{ fontSize: 10 }}>{row.driver_full_name}</Text>
+                        </View>
+
+                        {/* <View
                         style={{
                           position: 'absolute',
                           bottom: 160,
@@ -372,7 +627,6 @@ const MonthlyReport = ({ cardTitle }) => {
                           width: 230,
                           height: 14,
                           justifyContent: 'center',
-                          // backgroundColor: 'red',
                           alignItems: 'center',
                           display: 'flex',
                         }}
@@ -380,17 +634,18 @@ const MonthlyReport = ({ cardTitle }) => {
                         <Text style={{ fontSize: 10 }}>{position}</Text>
                       </View> */}
 
-                      <View style={styles.footer}>
-                        <Text>Printed by: John Doe</Text>
+                        <View style={styles.footer}>
+                          <Text>Printed by: John Doe</Text>
 
-                        <Text>Printed on: {new Date().toLocaleString()}</Text>
-                      </View>
-                    </Page>
-                  </React.Fragment>
-                )
-              })}
-            </Document>
-          </PDFViewer>
+                          <Text>Printed on: {new Date().toLocaleString()}</Text>
+                        </View>
+                      </Page>
+                    </React.Fragment>
+                  )
+                })}
+              </Document>
+            </PDFViewer>
+          )}
         </CCol>
       </CRow>
     </>

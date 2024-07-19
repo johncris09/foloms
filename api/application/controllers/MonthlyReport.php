@@ -29,107 +29,121 @@ class MonthlyReport extends RestController
 		$tripTicketModel = new TripTicketModel;
 		$requestData = $this->input->get();
 
-		$date_range = array(
-			'start_date' => date('Y-m-d', strtotime($requestData['start_date'])),
-			'end_date' => date('Y-m-d', strtotime($requestData['end_date'])),
-		);
-		$data = [];
-		// group by driver and equipment base on date range
-		$driver_equipment = $tripTicketModel->get_driver_equipment($date_range);
+		// var_dump($requestData);
 
+		if ($requestData['report_type'] == 1) {
 
-		foreach ($driver_equipment as $row) {
-
-
-			$trip_ticket = $tripTicketModel->get_driver_trip_ticket(
-				[
-					'driver_id' => $row->driver,
-					'equipment_id' => $row->equipment,
-					...$date_range
-				]
+			$date_range = array(
+				'start_date' => date('Y-m-d', strtotime($requestData['start_date'])),
+				'end_date' => date('Y-m-d', strtotime($requestData['end_date'])),
+				'report_type' => $requestData['report_type'],
 			);
-			$data[] = array(
-							'plate_number' => $row->plate_number, 
-							'model' => $row->model,
-				'driver_full_name' => strtoupper( trim($row->last_name . ", " . $row->first_name . " " . $row->middle_name . " " . $row->suffix)),
-				'trip_ticket' => $trip_ticket,
-			);
+			$data = [];
+			// group by driver and equipment base on date range
+			$drivers = $tripTicketModel->get_driver($date_range);
 
-			// foreach($trip_ticket as $trip_ticket_row){
 
-			// 	$data[]['$trip_ticket'][] = $row;
+			foreach ($drivers as $driver) {
 
-			// }
+				$trip_tickets = $tripTicketModel->get_equipment(
+					[
+						'driver.id' => $driver->driver_id,
+						'equipment.id' => $driver->equipment,
+					]
+				);
+
+				$tripTicketData = [];
+
+				$total_approximate_distance_traveled = 0;
+				$total_purchased = 0;
+				$total_lubricating_oil_issued_purchased = 0;
+				$total_grease_issued_purchased = 0;
+				
+				foreach ($trip_tickets as $trip_ticket) {
+
+					$sub_total = 0;
+
+					$sub_total += floatval($trip_ticket->gasoline_purchased) + floatval($trip_ticket->gasoline_issued_by_office);
+
+
+					$total_approximate_distance_traveled += floatval($trip_ticket->approximate_distance_traveled);
+					$total_lubricating_oil_issued_purchased += floatval($trip_ticket->lubricating_oil_issued_purchased);
+					$total_grease_issued_purchased += floatval($trip_ticket->grease_issued_purchased);
+
+
+					$total_purchased += $sub_total;
+					$tripTicketData[] = array(
+						'purposes' => boolval($trip_ticket->include_description) ? trim($trip_ticket->purposes) : '',
+						'purchase_date' => date('m/d/Y', strtotime($trip_ticket->purchase_date)),
+						'gasoline_issued_by_office' => $trip_ticket->gasoline_purchased,
+						'lubricating_oil_issued_purchased' => $trip_ticket->lubricating_oil_issued_purchased,
+						'approximate_distance_traveled' => $trip_ticket->approximate_distance_traveled,
+						'distance_traveled' => $trip_ticket->distance_traveled,
+						'grease_issued_purchased' => $trip_ticket->grease_issued_purchased,
+						'include_description' => boolval($trip_ticket->include_description),
+						'sub_total' => $sub_total,
+					);
+
+
+				}
+
+				$data[] = array(
+
+					'total_approximate_distance_traveled' => $total_approximate_distance_traveled,
+					'total_purchased' => $total_purchased,
+					'total_lubricating_oil_issued_purchased' => $total_lubricating_oil_issued_purchased,
+					'total_grease_issued_purchased' => $total_grease_issued_purchased,
+					'plate_number' => trim($driver->plate_number),
+					'model' => trim($driver->model),
+					'driver_full_name' => strtoupper(trim($driver->last_name . ", " . $driver->first_name . " " . $driver->middle_name . " " . $driver->suffix)),
+					'trip_ticket' => $tripTicketData,
+				);
+			}
 		}
+		if ($requestData['report_type'] == 2) {
 
-		// select all driver with in date range then
-		// get the driver's trip ticket.
+			$date_range = array(
+				'start_date' => date('Y-m-d', strtotime($requestData['start_date'])),
+				'end_date' => date('Y-m-d', strtotime($requestData['end_date'])),
+				'report_type' => $requestData['report_type'],
+			);
+			$data = [];
+			// group by driver  base on date range
+			$drivers = $tripTicketModel->get_driver($date_range);
 
-
-		// $drivers = $tripTicketModel->get_driver_within_date_range($date_range);
-
-		// $data = [];
-		// foreach ($drivers as $row) {
-
-		// 	// get driver's equipment
-		// 	$drivers_equipment = $tripTicketModel->get_driver_equipment(
-		// 		['driver_id' => $row->driver_id, ...$date_range]
-		// 	);
-		// 	foreach ($drivers_equipment as $equipment) {
-
-		// 		$trip_ticket = $tripTicketModel->get_driver_trip_ticket(
-		// 			[
-		// 				'driver_id' => $row->driver_id,
-		// 				'equipment_id' => $equipment->equipment,
-		// 				...$date_range
-		// 			]
-		// 		);
+			foreach ($drivers as $driver) {
 
 
-		// 		$data[] = array(
-		// 			'equipment' => $equipment->equipment,
-		// 			// 'plate_number' => $trip_ticket->plate_number,
-		// 			'driver' => $row->driver_id,
-		// 			'driver_full_name' => trim($row->last_name . ", " . $row->first_name . " " . $row->middle_name . " " . $row->suffix),
-		// 			// 'trip_ticket' => array(
-		// 			// 	'date' => date('m/d/Y', strtotime($trip_ticket->purchase_date)),
-		// 			// 	'distance_traveled' => $trip_ticket->approximate_distance_traveled,
-		// 			// 	'gasoline_consume' => $trip_ticket->gasoline_purchased,
-		// 			// 	'oil_lubricant_used' => $trip_ticket->lubricating_oil_issued_purchased,
-		// 			// 	'grease_issued_used' => $trip_ticket->grease_issued_purchased,
-		// 			// 	'remarks' => $trip_ticket->purposes,
-		// 			// ),
-		// 		);
+				// get the driver's equipment
+				$equipments = $tripTicketModel->get_equipment([
+					'driver.id' => $driver->driver_id,
+				]);
+				$tripTicketData = [];
+				foreach ($equipments as $equipment) {
+					$tripTicketData[] = array(
+						'purchase_date' => date('m/d/Y', strtotime($equipment->purchase_date)),
+						'model' => trim($equipment->model),
+						'plate_number' => trim($equipment->plate_number),
+						'departure_time' => date('h:i A', strtotime($equipment->departure_time)),
+						'arrival_time_at_destination' => date('h:i A', strtotime($equipment->departure_time_from_destination)),
+						'departure_time_from_destination' => date('h:i A', strtotime($equipment->departure_time_from_destination)),
+						'arrival_time_back' => date('h:i A', strtotime($equipment->arrival_time_back)),
+						'gasoline_issued_by_office' => $equipment->gasoline_issued_by_office,
+						'gasoline_purchased' => $equipment->gasoline_purchased,
+						'total_purchased' => floatval($equipment->gasoline_purchased) + floatval($equipment->gasoline_issued_by_office),
+					);
+				}
 
-		// 		foreach ($trip_ticket as $trip_ticket_row) {
+				$data[] = array(
 
-		// 			// var_dump($trip_ticket_row);
-
-		// 			// echo "<br />";
-		// 			// echo "<br />";
-		// 			// echo "<br />";
-		// 			// echo "<br />";
-		// 		}
+					'driver_full_name' => strtoupper(trim($driver->last_name . ", " . $driver->first_name . " " . $driver->middle_name . " " . $driver->suffix)),
+					'trip_ticket' => $tripTicketData,
+				);
 
 
 
-
-		// 	}
-
-		// 	// get driver's trip ticket
-		// 	// $filter_driver_trip_ticket = ['driver_id' => $row->driver_id, ...$date_range];
-
-		// 	// $trip_ticket = $tripTicketModel->get_driver_trip_ticket($filter_driver_trip_ticket);
-
-
-		// }
-
-		// // $result =
-		// // 	$result = array(
-		// // 		'summary_consumption' => $tripTicketModel->get_summary_consumption($data),
-		// // 		'product_summary_consumption' => $tripTicketModel->get_product_summary_consumption($data),
-
-		// // 	);
+			}
+		}
 		$this->response($data, RestController::HTTP_OK);
 
 	}
