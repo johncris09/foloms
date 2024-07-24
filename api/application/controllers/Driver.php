@@ -80,7 +80,44 @@ class Driver extends RestController
 		});
 
 		$top10 = array_slice($data, 0, 10);
-		$this->response($top10, RestController::HTTP_OK);
+
+
+
+		$categories = [];
+		$dieselData = [];
+		$premiumData = [];
+		$regularData = [];
+
+		foreach ($top10 as $entry) {
+			$categories[] = $entry['driver'];
+			$dieselData[] = (float) $entry['diesel'];
+			$premiumData[] = (float) $entry['premium'];
+			$regularData[] = (float) $entry['regular'];
+		}
+
+		$series = [
+			[
+				"name" => "diesel",
+				"data" => $dieselData
+			],
+			[
+				"name" => "premium",
+				"data" => $premiumData
+			],
+			[
+				"name" => "regular",
+				"data" => $regularData
+			]
+		];
+
+		$result = [
+			"categories" => $categories,
+			"series" => $series
+		];
+
+
+
+		$this->response($result, RestController::HTTP_OK);
 
 	}
 
@@ -196,6 +233,23 @@ class Driver extends RestController
 	}
 
 
+	public function get_driver_latest_transaction_get()
+	{
+
+		$driverModel = new DriverModel;
+
+		$requestData = $this->input->get();
+		$result = [];
+		if (isset($requestData['driver'])) {
+
+
+			$result = $driverModel->get_driver_latest_transaction($requestData);
+
+		}
+		$this->response($result, RestController::HTTP_OK);
+
+
+	}
 
 
 }

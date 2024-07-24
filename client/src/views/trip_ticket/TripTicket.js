@@ -15,6 +15,13 @@ import {
   CModalTitle,
   CRow,
   CSpinner,
+  CTable,
+  CTableBody,
+  CTableCaption,
+  CTableDataCell,
+  CTableHead,
+  CTableHeaderCell,
+  CTableRow,
 } from '@coreui/react'
 import MaterialReactTable from 'material-react-table'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -22,7 +29,7 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useFormik } from 'formik'
 import Select from 'react-select'
 import { ToastContainer, toast } from 'react-toastify'
-import { Box, Button, IconButton, Tooltip } from '@mui/material'
+import { Box, Button, IconButton, Skeleton, Tooltip } from '@mui/material'
 import { DeleteOutline, EditSharp } from '@mui/icons-material'
 import {
   DefaultLoading,
@@ -477,6 +484,9 @@ const TripTicket = ({ cardTitle }) => {
   }
 
   const handleSelectChange = (selectedOption, ref) => {
+    if (ref.name === 'driver') {
+      driverLatestTransaction.mutate({ driver: selectedOption ? selectedOption.value : '""' })
+    }
     if (ref.name === 'product') {
       form.setFieldValue('product', selectedOption ? selectedOption.value : '')
     }
@@ -500,6 +510,20 @@ const TripTicket = ({ cardTitle }) => {
       form.setFieldValue('equipment', selectedOption ? selectedOption.value : '')
     }
   }
+
+  const driverLatestTransaction = useMutation({
+    mutationFn: async (values) => {
+      const response = await api.get('driver/get_driver_latest_transaction', {
+        params: values,
+      })
+      return response.data
+    },
+
+    onError: (error) => {
+      console.info(error)
+      // toast.error('Duplicate Entry!')
+    },
+  })
 
   return (
     <>
@@ -893,6 +917,46 @@ const TripTicket = ({ cardTitle }) => {
                       size="sm"
                     />
                   </CCol>
+                </CRow>
+                <CRow className="mt-5">
+                  <CTable small responsive striped caption="top">
+                    <CTableCaption>Latest Driver&apos;s Transaction</CTableCaption>
+                    <CTableBody>
+                      {driverLatestTransaction.isPending ? (
+                        [...Array(3)].map((_, indexCol) => (
+                          <CTableRow key={indexCol}>
+                            {[...Array(2)].map((_, indexInnerCol) => (
+                              <CTableDataCell key={indexInnerCol}>
+                                <Skeleton variant="rounded" width={'80%'} />
+                              </CTableDataCell>
+                            ))}
+                          </CTableRow>
+                        ))
+                      ) : (
+                        <>
+                          <CTableRow>
+                            <CTableDataCell>Date</CTableDataCell>
+                            <CTableDataCell>
+                              {driverLatestTransaction?.data?.purchase_date}
+                            </CTableDataCell>
+                          </CTableRow>
+                          <CTableRow>
+                            <CTableDataCell>Product</CTableDataCell>
+                            <CTableDataCell>
+                              {driverLatestTransaction?.data?.product}
+                            </CTableDataCell>
+                          </CTableRow>
+                          <CTableRow>
+                            <CTableDataCell>Equipment</CTableDataCell>
+                            <CTableDataCell>
+                              {driverLatestTransaction?.data?.plate_number}{' '}
+                              {driverLatestTransaction?.data?.model}
+                            </CTableDataCell>
+                          </CTableRow>
+                        </>
+                      )}
+                    </CTableBody>
+                  </CTable>
                 </CRow>
               </CCol>
 
