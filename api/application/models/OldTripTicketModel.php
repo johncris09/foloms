@@ -269,4 +269,39 @@ class OldTripTicketModel extends CI_Model
 
 
 
+	public function get_encoded_data()
+	{
+
+		$query_string = "
+			SELECT users.id user_id,
+			users.first_name,
+			date( old_trip_ticket.`encoded_at`) as encoded_at, 
+			COUNT(users.id) AS total_encoded
+			FROM old_trip_ticket
+			LEFT JOIN users ON old_trip_ticket.`user_id` = users.`id`
+			GROUP BY users.id, DATE(old_trip_ticket.`encoded_at`)
+			ORDER BY DATE(old_trip_ticket.`encoded_at`)
+		"; 
+
+		$query = $this->db->query($query_string);
+
+			
+		return $query->result();
+	}
+
+	public function get_date()
+	{
+		$query_string = " 
+			SELECT
+				distinct DATE(encoded_at) as date
+			FROM old_trip_ticket
+			order by date(encoded_at) asc
+		";
+		$query = $this->db
+			->query($query_string);
+
+			
+		return $query->result();
+	}
+
 }

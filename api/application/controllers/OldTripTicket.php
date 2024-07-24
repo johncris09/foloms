@@ -223,4 +223,53 @@ class OldTripTicket extends RestController
 
 
 
+
+	public function work_trend_get()
+	{ 
+		$oldTripTicketModel = new OldTripTicketModel();
+
+		$dates = $oldTripTicketModel->get_date(); 
+		$categories = [];
+		$seriesData = [];
+
+		foreach ($dates as $date) {
+			$categories[] = date('m/d/Y', strtotime($date->date));
+		}
+
+		$encoded_datas = $oldTripTicketModel->get_encoded_data();
+		$encodedData = [];
+		foreach ($encoded_datas as $encoded) {
+
+			$encodedData[$encoded->first_name][$encoded->encoded_at] = $encoded->total_encoded;
+		}
+
+
+
+		// Generate series array
+		$series = [];
+		foreach ($encodedData as $first_name => $data) {
+			$seriesData = [];
+			foreach ($categories as $date) {
+
+
+				$seriesData[] = isset($data[date('Y-m-d', strtotime($date))]) ? (int) $data[date('Y-m-d', strtotime($date))] : 0;
+			}
+			$series[] = [
+				'name' => trim($first_name),
+				'data' => $seriesData
+			];
+		}
+
+		$data = array(
+			'categories' => $categories,
+			'series' => $series,
+		);
+
+
+		$this->response($data, RestController::HTTP_OK);
+
+	}
+
+
+
 }

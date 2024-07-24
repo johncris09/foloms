@@ -396,10 +396,11 @@ class TripTicketModel extends CI_Model
 
 
 
-	public function get_total_by_office_by_product($data, $as)
+	public function get_total_by_office_by_product($data)
 	{
 		$this->db->select('
-				office.id, office.office,  
+				office.id, 
+				office.office,  
 				product.product,
 				SUM(trip_ticket.gasoline_issued_by_office + trip_ticket.gasoline_purchased) AS purchased
 			')
@@ -470,5 +471,41 @@ class TripTicketModel extends CI_Model
 		$query = $this->db->get();
 
 		return $query->row();
+	}
+
+	public function get_encoded_data()
+	{
+
+		$query_string = "
+			SELECT users.id user_id,
+			users.first_name,
+			date( trip_ticket.`encoded_at`) as encoded_at, 
+			COUNT(users.id) AS total_encoded
+			FROM trip_ticket
+			LEFT JOIN users ON trip_ticket.`user_id` = users.`id`
+			GROUP BY users.id, DATE(trip_ticket.`encoded_at`)
+			ORDER BY DATE(trip_ticket.`encoded_at`)
+		"; 
+
+		$query = $this->db->query($query_string);
+
+			
+		return $query->result();
+	}
+
+	public function get_date()
+	{
+		$query_string = "
+		
+			SELECT
+				distinct DATE(encoded_at) as date
+			FROM trip_ticket
+			order by date(encoded_at) asc
+		";
+		$query = $this->db
+			->query($query_string);
+
+			
+		return $query->result();
 	}
 }
