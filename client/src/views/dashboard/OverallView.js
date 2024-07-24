@@ -13,11 +13,21 @@ import {
 import { Skeleton } from '@mui/material'
 import React from 'react'
 import ApexCharts from 'react-apexcharts'
-import { api } from 'src/components/SystemConfiguration'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { api, months } from 'src/components/SystemConfiguration'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-const OverallView = ({ productConsumptionTrend }) => {
+const OverallView = () => {
   const queryClient = useQueryClient()
+
+  const productConsumptionTrend = useQuery({
+    queryFn: async () =>
+      await api.get('trip_ticket/product_consumption_trend').then((response) => {
+        return response.data
+      }),
+    queryKey: ['productConsumptionTrend'],
+    staleTime: Infinity,
+  })
+
   const handleSubmit = async (event, data) => {
     await filter.mutate(data)
   }
@@ -40,20 +50,6 @@ const OverallView = ({ productConsumptionTrend }) => {
   })
 
   // Array of month names and their corresponding numbers (1-based index)
-  const months = [
-    { name: 'January', number: 1 },
-    { name: 'February', number: 2 },
-    { name: 'March', number: 3 },
-    { name: 'April', number: 4 },
-    { name: 'May', number: 5 },
-    { name: 'June', number: 6 },
-    { name: 'July', number: 7 },
-    { name: 'August', number: 8 },
-    { name: 'September', number: 9 },
-    { name: 'October', number: 10 },
-    { name: 'November', number: 11 },
-    { name: 'December', number: 12 },
-  ]
 
   const getCurrentMonthNumber = () => {
     const date = new Date()
