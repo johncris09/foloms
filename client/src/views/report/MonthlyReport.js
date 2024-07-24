@@ -1,17 +1,6 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef } from 'react'
 import Select from 'react-select'
-import {
-  Page,
-  Text,
-  View,
-  Document,
-  StyleSheet,
-  PDFViewer,
-  Font,
-  Image,
-  Svg,
-  Line,
-} from '@react-pdf/renderer'
+import { Page, Text, View, Document, StyleSheet, PDFViewer, Font, Image } from '@react-pdf/renderer'
 import monthlyReportTemplate1 from './../../assets/images/template/monthly_report 1.png'
 import monthlyReportTemplate2 from './../../assets/images/template/monthly_report 2.png'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -23,7 +12,7 @@ import { api, officer, requiredField } from 'src/components/SystemConfiguration'
 import { format, parse } from 'date-fns'
 import { CDateRangePicker } from '@coreui/react-pro'
 import PageTitle from 'src/components/PageTitle'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { jwtDecode } from 'jwt-decode'
 
 const MonthlyReport = ({ cardTitle }) => {
@@ -49,7 +38,6 @@ const MonthlyReport = ({ cardTitle }) => {
     },
     onSuccess: async (response) => {
       if (response.data.length) {
-        console.info(response.data)
         return response.data
       } else {
         toast.error('No Records Found!')
@@ -171,7 +159,8 @@ const MonthlyReport = ({ cardTitle }) => {
             )}
             <div className="d-grid gap-2 d-md-flex mt-3 justify-content-md-end">
               <CButton type="submit" size="sm" variant="outline" color="primary">
-                <FontAwesomeIcon icon={faFilter} /> Filter
+                <FontAwesomeIcon icon={faFilter} />
+                {monthlyReport.isPending ? 'Please Wait...' : 'Filter'}
               </CButton>
             </div>
           </CForm>
