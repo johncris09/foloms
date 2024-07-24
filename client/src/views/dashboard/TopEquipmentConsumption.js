@@ -1,102 +1,90 @@
-import React from 'react'
-import './../../assets/css/widget.css'
-import { Card, Skeleton } from '@mui/material'
-import 'animate.css'
-import 'intro.js/introjs.css'
+import { cilFilter } from '@coreui/icons'
+import CIcon from '@coreui/icons-react'
 import {
+  CButtonGroup,
+  CCard,
   CCardBody,
-  CTable,
-  CTableBody,
-  CTableCaption,
-  CTableDataCell,
-  CTableHead,
-  CTableHeaderCell,
-  CTableRow,
+  CDropdown,
+  CDropdownDivider,
+  CDropdownItem,
+  CDropdownMenu,
+  CDropdownToggle,
 } from '@coreui/react'
+import { Skeleton } from '@mui/material'
+import React from 'react'
+import ApexCharts from 'react-apexcharts'
+import { api, months } from 'src/components/SystemConfiguration'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-const TopEquipmentConsumption = ({ topEquipmentConsumption }) => {
+const TopEquipmentConsumption = () => {
+  const topEquipmentConsumption = useQuery({
+    queryFn: async () =>
+      await api.get('equipment/top_consumption').then((response) => {
+        return response.data
+      }),
+    queryKey: ['topEquipmentConsumption'],
+    staleTime: Infinity,
+    refetchInterval: 1000,
+  })
+
   return (
-    <Card>
-      <CCardBody className="p-2">
-        <CTable caption="top" responsive>
-          <CTableCaption>
-            <h6>Top Equipment Fuel Consumption Report</h6>
-          </CTableCaption>
-          <CTableHead>
-            <CTableRow>
-              <CTableHeaderCell>#</CTableHeaderCell>
-              <CTableHeaderCell colSpan={2}>Model</CTableHeaderCell>
-              <CTableHeaderCell>Diesel</CTableHeaderCell>
-              <CTableHeaderCell>Premium</CTableHeaderCell>
-              <CTableHeaderCell>Regular</CTableHeaderCell>
-              <CTableHeaderCell>Total</CTableHeaderCell>
-            </CTableRow>
-          </CTableHead>
-          <CTableBody>
-            {topEquipmentConsumption?.isLoading
-              ? [...Array(10)].map((_, IndexCol) => (
-                  <CTableRow key={IndexCol}>
-                    <CTableDataCell>
-                      <Skeleton
-                        variant="rounded"
-                        width={'120%'}
-                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.11)', margin: 'auto' }}
-                      />
-                    </CTableDataCell>
-                    <CTableDataCell>
-                      <Skeleton
-                        variant="rounded"
-                        width={'120%'}
-                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.11)', margin: 'auto' }}
-                      />
-                    </CTableDataCell>
-                    <CTableDataCell>
-                      <Skeleton
-                        variant="rounded"
-                        width={'30%'}
-                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.11)', margin: 'auto' }}
-                      />
-                    </CTableDataCell>
-                    <CTableDataCell>
-                      <Skeleton
-                        variant="rounded"
-                        width={'30%'}
-                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.11)', margin: 'auto' }}
-                      />
-                    </CTableDataCell>
-                    <CTableDataCell>
-                      <Skeleton
-                        variant="rounded"
-                        width={'30%'}
-                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.11)', margin: 'auto' }}
-                      />
-                    </CTableDataCell>
-                    <CTableDataCell>
-                      <Skeleton
-                        variant="rounded"
-                        width={'30%'}
-                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.11)', margin: 'auto' }}
-                      />
-                    </CTableDataCell>
-                  </CTableRow>
-                ))
-              : topEquipmentConsumption?.data?.map((item, index) => {
-                  return (
-                    <CTableRow key={index}>
-                      <CTableDataCell>{index + 1}</CTableDataCell>
-                      <CTableDataCell>{item.plate_number}</CTableDataCell>
-                      <CTableDataCell>{item.model}</CTableDataCell>
-                      <CTableDataCell>{item.diesel}</CTableDataCell>
-                      <CTableDataCell>{item.premium}</CTableDataCell>
-                      <CTableDataCell>{item.regular}</CTableDataCell>
-                      <CTableDataCell>{item.total}</CTableDataCell>
-                    </CTableRow>
-                  )
-                })}
-          </CTableBody>
-        </CTable>
-      </CCardBody>
-    </Card>
+    <>
+      <CCard>
+        <CCardBody>
+          <div className="d-flex justify-content-between">
+            <div>
+              <h6>Top Equipment Fuel Consumption Report</h6>
+            </div>
+          </div>
+
+          {topEquipmentConsumption.isLoading ? (
+            <Skeleton
+              variant="rounded"
+              width={'100%'}
+              height={390}
+              style={{ marginBottom: '30px' }}
+            />
+          ) : (
+            <ApexCharts
+              options={{
+                chart: {
+                  type: 'bar',
+                },
+                dataLabels: {
+                  enabled: false,
+                },
+                stroke: {
+                  curve: 'smooth',
+                  width: 3,
+                },
+                markers: {
+                  size: 1,
+                  colors: ['blue', 'green', 'orange'],
+                  strokeColor: 'gray',
+                  strokeWidth: 1,
+                },
+                grid: {
+                  show: true, // Enable or disable the grid
+                  borderColor: '#e7e7e7', // Set the color of the grid lines
+                  strokeDashArray: 0, // Set the style of the grid lines (e.g., dashed lines)
+                  position: 'back', // Position the grid lines (e.g., 'back' or 'front')
+                },
+                xaxis: {
+                  categories: !topEquipmentConsumption.isLoading
+                    ? topEquipmentConsumption?.data?.categories
+                    : [],
+                },
+              }}
+              series={
+                !topEquipmentConsumption.isLoading ? topEquipmentConsumption?.data?.series : []
+              }
+              type="bar"
+              height={400}
+            />
+          )}
+        </CCardBody>
+      </CCard>
+    </>
   )
 }
 

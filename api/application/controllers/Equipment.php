@@ -81,7 +81,42 @@ class Equipment extends RestController
 		});
 
 		$top10 = array_slice($data, 0, 10);
-		$this->response($top10, RestController::HTTP_OK);
+
+
+
+		$categories = [];
+		$dieselData = [];
+		$premiumData = [];
+		$regularData = [];
+
+		foreach ($top10 as $entry) {
+			$categories[] = trim( $entry['plate_number'] . ' ' . $entry['model']);
+			$dieselData[] = (float) $entry['diesel'];
+			$premiumData[] = (float) $entry['premium'];
+			$regularData[] = (float) $entry['regular'];
+		}
+
+		$series = [
+			[
+				"name" => "Diesel",
+				"data" => $dieselData
+			],
+			[
+				"name" => "Premium",
+				"data" => $premiumData
+			],
+			[
+				"name" => "Regular",
+				"data" => $regularData
+			]
+		];
+
+		$result = [
+			"categories" => $categories,
+			"series" => $series
+		];
+
+		$this->response($result, RestController::HTTP_OK);
 
 	}
 

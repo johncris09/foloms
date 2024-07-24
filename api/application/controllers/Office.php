@@ -28,6 +28,7 @@ class Office extends RestController
 	}
 	public function top_consumption_get()
 	{
+
 		$officeModel = new OfficeModel;
 		$productModel = new ProductModel;
 		$tripTicketModel = new TripTicketModel;
@@ -39,7 +40,7 @@ class Office extends RestController
 		foreach ($offices as $office) {
 
 			$officeData = [
-				'office' => $office->office,
+				'office' => $office->abbr,
 			];
 
 			$total = 0;
@@ -54,7 +55,8 @@ class Office extends RestController
 						'office.id' => $office->id,
 						'product.id' => $product->id,
 					);
-					$result = $tripTicketModel->get_total_by_office_by_product($whereData, $product->product);
+					$result = $tripTicketModel->get_total_by_office_by_product($whereData);
+
 
 					// Append the product data to the office data array
 					$officeData[strtolower($result->product)] = $result->purchased > 0 ? number_format($result->purchased, 2, '.', ',') : 0;
@@ -77,7 +79,45 @@ class Office extends RestController
 		});
 
 		$top10 = array_slice($data, 0, 10);
-		$this->response($top10, RestController::HTTP_OK);
+
+
+		// for bar chart
+
+		$categories = [];
+		$dieselData = [];
+		$premiumData = [];
+		$regularData = [];
+
+		foreach ($top10 as $entry) {
+			$categories[] = $entry['office'];
+			$dieselData[] = (float) $entry['diesel'];
+			$premiumData[] = (float) $entry['premium'];
+			$regularData[] = (float) $entry['regular'];
+		}
+
+		$series = [
+			[
+				"name" => "Diesel",
+				"data" => $dieselData
+			],
+			[
+				"name" => "Premium",
+				"data" => $premiumData
+			],
+			[
+				"name" => "Regular",
+				"data" => $regularData
+			]
+		];
+
+		$result = [
+			"categories" => $categories,
+			"series" => $series
+		];
+
+
+
+		$this->response($result, RestController::HTTP_OK);
 
 	}
 	public function find_get($id)
