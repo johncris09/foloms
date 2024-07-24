@@ -1,9 +1,13 @@
 import React from 'react'
 import CIcon from '@coreui/icons-react'
 import {
+  cibLetterboxd,
+  cilChildFriendly,
+  cilClipboard,
   cilCog,
   cilFile,
   cilFolderOpen,
+  cilInbox,
   cilInstitution,
   cilPeople,
   cilSpeedometer,
@@ -11,6 +15,8 @@ import {
   cilUser,
 } from '@coreui/icons'
 import { CNavGroup, CNavItem } from '@coreui/react'
+import { faGasPump } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 const _nav = (userInfo) => {
   let items = []
@@ -34,16 +40,36 @@ const _nav = (userInfo) => {
         component: CNavItem,
         name: 'Old Trip Ticket',
         to: '/old_trip_ticket',
-        badge: {
-          color: 'info',
-          text: 'NEW',
-        },
+        // badge: {
+        //   color: 'info',
+        //   text: 'NEW',
+        // },
         icon: <CIcon icon={cilFile} customClassName="nav-icon" />,
       },
       {
         component: CNavItem,
         name: 'Equipment',
         to: '/equipment',
+        icon: <CIcon icon={cilChildFriendly} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Delivery',
+        to: '/delivery',
+        badge: {
+          color: 'info',
+          text: 'NEW',
+        },
+        icon: <CIcon icon={cilClipboard} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Supplier',
+        to: '/supplier',
+        badge: {
+          color: 'info',
+          text: 'NEW',
+        },
         icon: <CIcon icon={cilTruck} customClassName="nav-icon" />,
       },
       {
@@ -59,12 +85,12 @@ const _nav = (userInfo) => {
         icon: <CIcon icon={cilInstitution} customClassName="nav-icon" />,
       },
 
-      // {
-      //   component: CNavItem,
-      //   name: 'Report',
-      //   to: '/report',
-      //   icon: <CIcon icon={cilFolderOpen} customClassName="nav-icon" />,
-      // },
+      {
+        component: CNavItem,
+        name: 'Report',
+        to: '/report',
+        icon: <CIcon icon={cilFolderOpen} customClassName="nav-icon" />,
+      },
       {
         component: CNavGroup,
         name: 'Configuration',
@@ -128,6 +154,27 @@ const _nav = (userInfo) => {
         component: CNavItem,
         name: 'Equipment',
         to: '/equipment',
+        icon: <CIcon icon={cilChildFriendly} customClassName="nav-icon" />,
+      },
+
+      {
+        component: CNavItem,
+        name: 'Delivery',
+        to: '/delivery',
+        badge: {
+          color: 'info',
+          text: 'NEW',
+        },
+        icon: <CIcon icon={cilClipboard} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Supplier',
+        to: '/supplier',
+        badge: {
+          color: 'info',
+          text: 'NEW',
+        },
         icon: <CIcon icon={cilTruck} customClassName="nav-icon" />,
       },
       {
@@ -142,13 +189,12 @@ const _nav = (userInfo) => {
         to: '/office',
         icon: <CIcon icon={cilInstitution} customClassName="nav-icon" />,
       },
-
-      // {
-      //   component: CNavItem,
-      //   name: 'Report',
-      //   to: '/report',
-      //   icon: <CIcon icon={cilFolderOpen} customClassName="nav-icon" />,
-      // },
+      {
+        component: CNavItem,
+        name: 'Report',
+        to: '/report',
+        icon: <CIcon icon={cilFolderOpen} customClassName="nav-icon" />,
+      },
       {
         component: CNavGroup,
         name: 'Configuration',

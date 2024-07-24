@@ -9,6 +9,8 @@ const EquipmentType = React.lazy(() => import('./views/equipment_type/EquipmentT
 const ReportType = React.lazy(() => import('./views/report_type/ReportType'))
 const Driver = React.lazy(() => import('./views/driver/Driver'))
 const Office = React.lazy(() => import('./views/office/Office'))
+const Delivery = React.lazy(() => import('./views/delivery/Delivery'))
+const Supplier = React.lazy(() => import('./views/supplier/Supplier'))
 const Product = React.lazy(() => import('./views/product/Product'))
 const User = React.lazy(() => import('./views/user/User'))
 const MonthlyReport = React.lazy(() => import('./views/report/MonthlyReport'))
@@ -79,6 +81,20 @@ const routes = [
     exact: true,
     name: 'Office',
     element: Office,
+  },
+  {
+    path: '/delivery',
+    user: ['Super Admin', 'Admin'],
+    exact: true,
+    name: 'Delivery',
+    element: Delivery,
+  },
+  {
+    path: '/supplier',
+    user: ['Super Admin', 'Admin'],
+    exact: true,
+    name: 'Supplier',
+    element: Supplier,
   },
   { path: '/product', user: ['Super Admin'], name: 'Product', element: Product },
   {
