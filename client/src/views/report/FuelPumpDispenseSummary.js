@@ -1,4 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
+
+import Select from 'react-select'
 import {
   Page,
   Text,
@@ -10,15 +12,16 @@ import {
   Svg,
   Line,
 } from '@react-pdf/renderer'
-import { CButton, CCol, CForm, CFormInput, CRow } from '@coreui/react'
+import { CButton, CCol, CForm, CFormInput, CFormLabel, CRow, CSpinner } from '@coreui/react'
 import { format, parse } from 'date-fns'
-import { useMutation } from '@tanstack/react-query'
 import { api, requiredField } from 'src/components/SystemConfiguration'
 import { useFormik } from 'formik'
 import { toast } from 'react-toastify'
 import { CDatePicker } from '@coreui/react-pro'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFilter } from '@fortawesome/free-solid-svg-icons'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
 import { jwtDecode } from 'jwt-decode'
 const BORDER_COLOR = '#bfbfbf'
 const BORDER_STYLE = 'solid'
@@ -28,6 +31,8 @@ const COLN_WIDTH = (100 - 12) / (NUM_COLUMNS - 3)
 
 // const COLN_WIDTH = (100 - NUM_COLUMNS) / 3
 const FuelPumpDispenseSummary = ({ cardTitle }) => {
+  const queryClient = useQueryClient()
+  const fuelDispenseOfficeInputRef = useRef()
   const user = jwtDecode(localStorage.getItem('folomsToken'))
 
   const [totalChunks, setTotalChunks] = useState(2)
@@ -396,8 +401,24 @@ const FuelPumpDispenseSummary = ({ cardTitle }) => {
     'Amount',
   ]
 
+  const fuelDispenseOffice = useQuery({
+    queryFn: async () =>
+      await api.get('office').then((response) => {
+        const formattedData = response.data.map((item) => {
+          const value = item.id
+          const label = `${item.abbr} - ${item.office}`
+          return { value, label }
+        })
+        return formattedData
+      }),
+    queryKey: ['fuelDispenseOffice'],
+    staleTime: Infinity,
+    refetchInterval: 1000,
+  })
+
   const filter = useFormik({
     initialValues: {
+      office: '',
       purchase_date: '',
     },
     onSubmit: async (values) => {
@@ -407,7 +428,6 @@ const FuelPumpDispenseSummary = ({ cardTitle }) => {
       const options = { year: 'numeric', month: 'long', day: 'numeric' }
       const formattedDate = date.toLocaleDateString('en-US', options)
 
-      console.log(formattedDate)
       setFilterTitle(formattedDate)
 
       await filterSummaryConsumption.mutate(values)
@@ -417,10 +437,10 @@ const FuelPumpDispenseSummary = ({ cardTitle }) => {
   const filterSummaryConsumption = useMutation({
     mutationKey: ['filterSummaryConsumption'],
     mutationFn: async (values) => {
-      return await api.get('summary_consumption/filter', { params: values })
+      return await api.get('fuel_pump_dispense/filter', { params: values })
     },
     onSuccess: async (response) => {
-      if (response.data.consumption.length > 0 || response.data.summary.length > 0) {
+      if (response.data.consumption.length > 0) {
         setSummary(response.data.summary)
         const data = response.data.consumption
         const dividedArray = chunkArray(data, parseInt(rowsPerPage))
@@ -496,11 +516,38 @@ const FuelPumpDispenseSummary = ({ cardTitle }) => {
         return styles.tableCellHeader
     }
   }
+  const handleSelectChange = (selectedOption, ref) => {
+    filter.setFieldValue(ref.name, selectedOption ? selectedOption.value : '')
+  }
   return (
     <CRow>
       <CCol md={4}>
         <h6>Filter</h6>
         <CForm onSubmit={filter.handleSubmit}>
+          <CCol md={12}>
+            <CFormLabel>
+              {
+                <>
+                  {fuelDispenseOffice.isLoading && <CSpinner size="sm" />}
+                  {'Office'}
+                </>
+              }
+            </CFormLabel>
+            <Select
+              ref={fuelDispenseOfficeInputRef}
+              value={
+                !fuelDispenseOffice.isLoading &&
+                fuelDispenseOffice.data?.find((option) => option.value === filter.values.office)
+              }
+              onChange={handleSelectChange}
+              options={!fuelDispenseOffice.isLoading && fuelDispenseOffice.data}
+              name="office"
+              isSearchable
+              placeholder="Search..."
+              isClearable
+            />
+          </CCol>
+
           <CDatePicker
             footer
             date=""
@@ -574,30 +621,7 @@ const FuelPumpDispenseSummary = ({ cardTitle }) => {
                               <Text style={styles.tableCell}> {index * rowsPerPage + idx + 1}</Text>
                             </View>
                             <View style={styles.tableCol2}>
-                              <Text style={styles.tableCell}>
-                                {(() => {
-                                  const purchaseDate = row.purchase_date // Assuming the format is YYYY-MM-DD
-                                  let formattedDate = ''
-
-                                  if (purchaseDate) {
-                                    const [year, month, day] = purchaseDate.split('-')
-                                    if (year && month && day) {
-                                      const formattedYear = year.slice(2) // Get the last two digits of the year
-                                      formattedDate = `${month}-${day}-${formattedYear}`
-                                    }
-                                  }
-
-                                  const controlNumber = row.control_number
-                                  const formattedControlNumber = String(controlNumber).padStart(
-                                    4,
-                                    '0',
-                                  )
-
-                                  return `${
-                                    formattedDate ? formattedDate + '-' : ''
-                                  }${formattedControlNumber}`
-                                })()}
-                              </Text>
+                              <Text style={styles.tableCell}>{row.formatted_control_number}</Text>
                             </View>
                             <View style={styles.tableCol3}>
                               <Text style={styles.tableCell}>{row.purchase_date}</Text>
