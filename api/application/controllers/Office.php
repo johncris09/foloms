@@ -24,100 +24,76 @@ class Office extends RestController
 	{
 		$officeModel = new OfficeModel;
 		$result = $officeModel->get();
+
 		$this->response($result, RestController::HTTP_OK);
 	}
 	public function top_consumption_get()
 	{
 
-		$officeModel = new OfficeModel;
 		$productModel = new ProductModel;
 		$tripTicketModel = new TripTicketModel;
+
+		$requestData = $this->input->get();
+
 		$data = [];
-
-		$offices = $officeModel->get();
-
-
-		foreach ($offices as $office) {
-
-			$officeData = [
-				'office' => $office->abbr,
-			];
-
-			$total = 0;
-			$products = $productModel->get();
-
-			foreach ($products as $product) {
+		$categories = [];
+		$seriesData = [];
+		$whereData = [];
+		$top = 10;
 
 
-				if (in_array(strtolower($product->product), ['diesel', 'premium', 'regular'])) {
+		if (isset($requestData['top']) && !empty($requestData['top'])) {
+			$top = $requestData['top'];
+		}
 
-					$whereData = array(
-						'office.id' => $office->id,
-						'product.id' => $product->id,
-					);
+		if (isset($requestData['month']) && !empty($requestData['month'])) {
+			$whereData['month(purchase_date)'] = $requestData['month'];
+		}
+
+		if (isset($requestData['year']) && !empty($requestData['year'])) {
+			$whereData['year(purchase_date)'] = $requestData['year'];
+		}
+
+		$offices = $tripTicketModel->get_top_office($whereData, $top);
+
+		$products = $productModel->get();
+		foreach ($products as $product) {
+
+			if (in_array(strtolower($product->product), ['diesel', 'premium', 'regular'])) {
+
+				$seriesData[$product->product] = [
+					'name' => $product->product,
+				];
+			}
+
+		}
+		foreach ($products as $product) {
+
+			if (in_array(strtolower($product->product), ['diesel', 'premium', 'regular'])) {
+				foreach ($offices as $office) {
+
+					$categories[$office->id] = $office->office;
+
+
+					$whereData['office.id'] = $office->id;
+					$whereData['product.id'] = $product->id;
+
+
 					$result = $tripTicketModel->get_total_by_office_by_product($whereData);
-
-
-					// Append the product data to the office data array
-					$officeData[strtolower($result->product)] = $result->purchased > 0 ? number_format($result->purchased, 2, '.', ',') : 0;
-
-					$total += $result->purchased;
-
+					$seriesData[$product->product]['data'][] = floatval($result->purchased);
 				}
 
 			}
 
-			$officeData['total'] = number_format($total, 2, '.', ',');
-
-			$data[] = $officeData;
-
 		}
 
 
-		usort($data, function ($a, $b) {
-			return $b['total'] <=> $a['total'];
-		});
-
-		$top10 = array_slice($data, 0, 10);
-
-
-		// for bar chart
-
-		$categories = [];
-		$dieselData = [];
-		$premiumData = [];
-		$regularData = [];
-
-		foreach ($top10 as $entry) {
-			$categories[] = $entry['office'];
-			$dieselData[] = (float) $entry['diesel'];
-			$premiumData[] = (float) $entry['premium'];
-			$regularData[] = (float) $entry['regular'];
-		}
-
-		$series = [
-			[
-				"name" => "Diesel",
-				"data" => $dieselData
-			],
-			[
-				"name" => "Premium",
-				"data" => $premiumData
-			],
-			[
-				"name" => "Regular",
-				"data" => $regularData
-			]
+		$data = [
+			'categories' => array_values($categories),
+			'series' => array_values($seriesData)
 		];
 
-		$result = [
-			"categories" => $categories,
-			"series" => $series
-		];
-
-
-
-		$this->response($result, RestController::HTTP_OK);
+		$this->response($data, RestController::HTTP_OK);
 
 	}
 	public function find_get($id)

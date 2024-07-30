@@ -27,99 +27,77 @@ class Driver extends RestController
 		$this->response($result, RestController::HTTP_OK);
 	}
 
-
 	public function top_consumption_get()
 	{
-		$driverModel = new DriverModel;
+
 		$productModel = new ProductModel;
 		$tripTicketModel = new TripTicketModel;
+
+		
+		$requestData = $this->input->get();
+		
 		$data = [];
+		$categories = [];
+		$seriesData = [];
+		$whereData = [];
+		$top = 10;
 
-		$drivers = $driverModel->get();
+		
+		
+		if (isset($requestData['top']) && !empty($requestData['top'])) {
+			$top = $requestData['top'];
+		}
+
+		if (isset($requestData['month']) && !empty($requestData['month'])) {
+			$whereData['month(purchase_date)'] = $requestData['month'];
+		}
+
+		if (isset($requestData['year']) && !empty($requestData['year'])) {
+			$whereData['year(purchase_date)'] = $requestData['year'];
+		}
+
+		
+		$drivers = $tripTicketModel->get_top_driver($whereData, $top);
+
+		$products = $productModel->get();
+		foreach ($products as $product) {
+
+			if (in_array(strtolower($product->product), ['diesel', 'premium', 'regular'])) {
+
+				$seriesData[$product->product] = [
+					'name' => $product->product,
+				];
+			}
+
+		}
+		
+		foreach ($products as $product) {
+
+			if (in_array(strtolower($product->product), ['diesel', 'premium', 'regular'])) {
+				foreach ($drivers as $driver) {
+
+					$categories[$driver->id] = $driver->first_name . " " .$driver->last_name ;
 
 
-		foreach ($drivers as $driver) {
+					$whereData['driver.id'] = $driver->id;
+					$whereData['product.id'] = $product->id;
 
 
-			$driverData = [
-				'driver' => trim($driver->last_name . ", " . $driver->first_name . " " . $driver->middle_name . " " . $driver->suffix),
-			];
-
-			$total = 0;
-			$products = $productModel->get();
-
-			foreach ($products as $product) {
-
-
-				if (in_array(strtolower($product->product), ['diesel', 'premium', 'regular'])) {
-
-					$whereData = array(
-						'driver.id' => $driver->id,
-						'product.id' => $product->id,
-					);
 					$result = $tripTicketModel->get_total_by_driver_by_product($whereData);
-
-					// Append the product data to the driver data array
-					$driverData[strtolower($result->product)] = $result->purchased > 0 ? number_format($result->purchased, 2, '.', ',') : 0;
-
-					$total += $result->purchased;
+					$seriesData[$product->product]['data'][] = floatval($result->purchased);
 				}
-
 
 			}
 
-			$driverData['total'] = number_format($total, 2, '.', ',');
-
-			$data[] = $driverData;
-
 		}
 
-
-		usort($data, function ($a, $b) {
-			return $b['total'] <=> $a['total'];
-		});
-
-		$top10 = array_slice($data, 0, 10);
-
-
-
-		$categories = [];
-		$dieselData = [];
-		$premiumData = [];
-		$regularData = [];
-
-		foreach ($top10 as $entry) {
-			$categories[] = $entry['driver'];
-			$dieselData[] = (float) $entry['diesel'];
-			$premiumData[] = (float) $entry['premium'];
-			$regularData[] = (float) $entry['regular'];
-		}
-
-		$series = [
-			[
-				"name" => "diesel",
-				"data" => $dieselData
-			],
-			[
-				"name" => "premium",
-				"data" => $premiumData
-			],
-			[
-				"name" => "regular",
-				"data" => $regularData
-			]
+		$data = [
+			'categories' => array_values($categories),
+			'series' => array_values($seriesData)
 		];
-
-		$result = [
-			"categories" => $categories,
-			"series" => $series
-		];
-
-
-
-		$this->response($result, RestController::HTTP_OK);
-
+		$this->response($data, RestController::HTTP_OK);
 	}
+
 
 	public function find_get($id)
 	{

@@ -141,6 +141,7 @@ class TripTicketModel extends CI_Model
 
 
 		$query = $this->db->get();
+
 		return $query->result();
 	}
 
@@ -156,13 +157,15 @@ class TripTicketModel extends CI_Model
 			')
 			->from('trip_ticket')
 			->join('product', 'trip_ticket.product = product.id', 'LEFT')
-			->where($data)
-			->where('product.id != 4')
-			->group_by('product.product');
+			->join('equipment', 'trip_ticket.equipment = equipment.id', 'LEFT')
+
+			->where($data);
+		// ->group_by('product.product');
 
 
 		$query = $this->db->get();
-		return $query->result();
+
+		return $query->row();
 	}
 
 
@@ -195,16 +198,16 @@ class TripTicketModel extends CI_Model
 		return $query->result();
 	}
 
-	
+
 
 	public function get_driver($data)
 	{
 
 		$group_by = 'driver';
 
-		if($data['report_type'] == 1){
-			
-		$group_by = 'driver, equipment';
+		if ($data['report_type'] == 1) {
+
+			$group_by = 'driver, equipment';
 		}
 
 		$this->db
@@ -225,11 +228,11 @@ class TripTicketModel extends CI_Model
 			->where('purchase_date >=', $data['start_date'])
 			->where('purchase_date <=', $data['end_date'])
 			->where('report_type.id', $data['report_type'])
-			->group_by($group_by )
+			->group_by($group_by)
 			->order_by('driver.last_name', 'asc');
 
 
-		$query = $this->db->get(); 
+		$query = $this->db->get();
 		return $query->result();
 	}
 
@@ -395,12 +398,84 @@ class TripTicketModel extends CI_Model
 
 
 
+	public function get_top_office($data, $limit)
+	{
+		$this->db
+			->select('
+				office.id,	
+				office.abbr AS office,
+				SUM(trip_ticket.gasoline_purchased + trip_ticket.gasoline_issued_by_office) AS total_purchased')
+			->from('trip_ticket')
+			->join('equipment', 'trip_ticket.equipment = equipment.id', 'left')
+			->join('office', 'equipment.office = office.id', 'left')
+			->where($data)
+			->group_by('equipment.office')
+			->order_by('total_purchased', 'desc')
+			->limit($limit);
+
+		$query = $this->db->get();
+
+		return $query->result();
+
+	}
+
+
+	
+
+	public function get_top_driver($data, $limit)
+	{
+		$this->db
+			->select(' 
+				driver.id,
+				driver.first_name,
+				driver.last_name,
+				driver.middle_name,
+				driver.suffix,
+				SUM(trip_ticket.gasoline_purchased + trip_ticket.gasoline_issued_by_office) AS total_purchased')
+			->from('trip_ticket')
+			->join('driver', 'trip_ticket.driver = driver.id', 'left')
+			->where($data)
+			->group_by('trip_Ticket.driver')
+			->order_by(' total_purchased ', 'desc')
+			->limit($limit);
+
+		$query = $this->db->get();
+
+		return $query->result();
+
+	}
+
+
+
+	
+
+	public function get_top_equipment($data, $limit)
+	{
+		$this->db
+			->select(' 
+				equipment.id,
+				equipment.plate_number,
+				equipment.model,
+				SUM(trip_ticket.gasoline_purchased + trip_ticket.gasoline_issued_by_office) AS total_purchased')
+			->from('trip_ticket')
+			->join('equipment', 'trip_ticket.equipment = equipment.id', 'left')
+			->where($data)
+			->group_by('trip_Ticket.equipment')
+			->order_by(' total_purchased ', 'desc')
+			->limit($limit);
+
+		$query = $this->db->get();
+
+		return $query->result();
+
+	}
+
 
 	public function get_total_by_office_by_product($data)
 	{
-		$this->db->select('
+	$this->db->select('
 				office.id, 
-				office.office,  
+				office.abbr office,  
 				product.product,
 				SUM(trip_ticket.gasoline_issued_by_office + trip_ticket.gasoline_purchased) AS purchased
 			')
@@ -408,10 +483,11 @@ class TripTicketModel extends CI_Model
 			->join('equipment', 'trip_ticket.equipment = equipment.id', 'LEFT')
 			->join('office', 'equipment.office = office.id', 'LEFT')
 			->join('product', 'trip_ticket.product = product.id', 'LEFT')
-			->where($data);
+			->where($data)
+		;
 
 		$query = $this->db->get();
-		// return $query;
+
 		return $query->row();
 	}
 
@@ -465,7 +541,6 @@ class TripTicketModel extends CI_Model
 			')
 			->from('trip_ticket')
 			->join('product', 'trip_ticket.product = product.id', 'LEFT')
-
 			->where($data);
 
 		$query = $this->db->get();
@@ -485,11 +560,11 @@ class TripTicketModel extends CI_Model
 			LEFT JOIN users ON trip_ticket.`user_id` = users.`id`
 			GROUP BY users.id, DATE(trip_ticket.`encoded_at`)
 			ORDER BY DATE(trip_ticket.`encoded_at`)
-		"; 
+		";
 
 		$query = $this->db->query($query_string);
 
-			
+
 		return $query->result();
 	}
 
@@ -505,7 +580,22 @@ class TripTicketModel extends CI_Model
 		$query = $this->db
 			->query($query_string);
 
-			
+
 		return $query->result();
+	}
+
+
+	public function get_work_details($data)
+	{
+		$this->db->select(' 
+		COUNT(*) AS total
+		 ')
+			->from('trip_ticket')
+			->join('users', 'trip_ticket.user_id = users.id', 'LEFT')
+			->where($data);
+		$query = $this->db->get();
+
+		return $query->row();
+
 	}
 }
