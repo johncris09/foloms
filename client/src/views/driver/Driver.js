@@ -330,11 +330,11 @@ const Driver = ({ cardTitle }) => {
               <CCol md={12}>
                 <CFormInput
                   type="text"
-                  label="Jon Description"
+                  label="Job Description"
                   name="job_description"
                   onChange={handleInputChange}
                   value={form.values.job_description}
-                  placeholder="Jon Description"
+                  placeholder="Job Description"
                 />
               </CCol>
             </CRow>
