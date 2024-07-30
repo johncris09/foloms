@@ -65,27 +65,58 @@ class Transaction extends RestController
 
 		$requestData = $this->input->get();
 
-		
+
 
 		$result = $transactionModel->filter_transaction($requestData);
 
- 
+
 
 		$diesel_balance = 0;
 		$premium_balance = 0;
 		$regular_balance = 0;
+		$prev_diesel_balance = 0;
+		$prev_premium_balance = 0;
+		$prev_regular_balance = 0;
 
-		$data = [];
+		$transaction = [];
+		$counter = 0;
+
 		foreach ($result as $row) {
+			if ($counter == 0) {
+				$previous_transaction = $this->get_previous_transaction($requestData);
+				if ($previous_transaction) {
+
+					$prev_diesel_balance += floatval($previous_transaction['diesel_delivery']) + floatval($previous_transaction['diesel_balance']);
+					$prev_premium_balance += floatval($previous_transaction['premium_delivery']) + floatval($previous_transaction['premium_balance']);
+					$prev_regular_balance += floatval($previous_transaction['regular_delivery']) + floatval($previous_transaction['regular_balance']);
 
 
+					$transaction[] = array(
+						'date' => 'Prev. Balance',
+						// 'date' => date('m/d/y', strtotime('last day of this month', strtotime($requestData['year'] . "-" . (int) $requestData['month'] - 1 . "-" . "01"))),
+						'diesel_delivery' => 0,
+						'diesel_consumption' => 0,
+						'diesel_balance' => number_format($previous_transaction['diesel_balance'], 2, '.', ',')
+						,
+						'premium_delivery' => 0,
+						'premium_consumption' => 0,
+						'premium_balance' => number_format($previous_transaction['premium_balance'], 2, '.', ',')
+						,
+						'regular_delivery' => 0,
+						'regular_consumption' => 0,
+						'regular_balance' => number_format($previous_transaction['regular_balance'], 2, '.', ','),
+
+					);
+				}
+			}
+			$counter++;
 			// Calculate new balances
-			$diesel_balance += $row->diesel_delivery - $row->diesel_consumption;
-			$premium_balance += $row->premium_delivery - $row->premium_consumption;
-			$regular_balance += $row->regular_delivery - $row->regular_consumption;
+			$diesel_balance += $prev_diesel_balance + $row->diesel_delivery - $row->diesel_consumption;
+			$premium_balance += $prev_premium_balance + $row->premium_delivery - $row->premium_consumption;
+			$regular_balance += $prev_regular_balance + $row->regular_delivery - $row->regular_consumption;
 
-			$data[] = array(
-				'date' => date('n/d/Y', strtotime($row->date)),
+			$transaction[] = array(
+				'date' => date('m/d/Y', strtotime($row->date)),
 				'diesel_delivery' => $row->diesel_delivery,
 				'diesel_consumption' => $row->diesel_consumption,
 				'diesel_balance' => number_format($diesel_balance, 2, '.', ','),
@@ -96,12 +127,64 @@ class Transaction extends RestController
 				'regular_consumption' => $row->regular_consumption,
 				'regular_balance' => number_format($regular_balance, 2, '.', ','),
 			);
-
+			$prev_diesel_balance = 0;
+			$prev_premium_balance = 0;
+			$prev_regular_balance = 0;
 		}
-		$this->response($data, RestController::HTTP_OK);
+
+		// $data = [$last_transaction, $transaction];
+		// $data[] = [];
+		$this->response($transaction, RestController::HTTP_OK);
 	}
 
+	private function get_previous_transaction($data)
+	{
 
+		$transactionModel = new TransactionModel;
+
+
+		if (isset($data['month'])) {
+			$requestData['month'] = (int) $data['month'] - 1;
+
+		}
+		if (isset($data['year'])) {
+			$requestData['year'] = $data['year'];
+		}
+		$result = $transactionModel->filter_transaction($requestData);
+
+		$data = [];
+
+		$diesel_balance = 0;
+		$premium_balance = 0;
+		$regular_balance = 0;
+
+		foreach ($result as $row) {
+
+			$diesel_balance += $row->diesel_delivery - $row->diesel_consumption;
+			$premium_balance += $row->premium_delivery - $row->premium_consumption;
+			$regular_balance += $row->regular_delivery - $row->regular_consumption;
+
+			$data[] = array(
+				'date' => date('m/d/Y', strtotime($row->date)),
+				'diesel_delivery' => $row->diesel_delivery,
+				'diesel_consumption' => $row->diesel_consumption,
+				'diesel_balance' => $diesel_balance,
+				'premium_delivery' => $row->premium_delivery,
+				'premium_consumption' => $row->premium_consumption,
+				'premium_balance' => $premium_balance,
+				'regular_delivery' => $row->regular_delivery,
+				'regular_consumption' => $row->regular_consumption,
+				'regular_balance' => $regular_balance,
+			);
+
+		}
+
+		if ($data) {
+			return end($data);
+		}
+		return $data;
+
+	}
 	public function remaining_balance_get()
 	{
 		$transactionModel = new TransactionModel;
@@ -235,6 +318,66 @@ class Transaction extends RestController
 		);
 
 		$this->response($data, RestController::HTTP_OK);
+	}
+
+
+
+
+	public function get_transaction_get()
+	{
+		$tripTicketModel = new TripTicketModel;
+		$productModel = new ProductModel;
+		$currentYear = date('Y');
+
+		$products = $productModel->get();
+
+		$categories = [];
+		$seriesData = [];
+
+		// Initialize series data array
+		foreach ($products as $product) {
+			if (in_array(strtolower($product->product), ['diesel', 'premium', 'regular'])) {
+				$seriesData[$product->product] = [
+					'name' => $product->product,
+					'data' => array_fill(0, 12, 0)
+				];
+			}
+		}
+
+		// Loop through each month of the current year
+		for ($month = 1; $month <= 12; $month++) {
+			// Create a DateTime object for the first day of each month
+			$date = DateTime::createFromFormat('Y-m-d', "$currentYear-$month-01");
+
+			// Get the month name
+			$categories[] = $date->format('F');
+			$monthFormatted = $date->format('m');
+
+			foreach ($products as $product) {
+				if (in_array(strtolower($product->product), ['diesel', 'premium', 'regular'])) {
+					$trendData = array(
+						'trip_ticket.product' => $product->id,
+						'month(purchase_date)' => $monthFormatted,
+						'year(purchase_date)' => $currentYear,
+					);
+
+					$result = $tripTicketModel->get_product_consumption_trend($trendData);
+
+					if ($result) {
+						$seriesData[$product->product]['data'][$month - 1] = floatval($result->purchased);
+					}
+				}
+			}
+		}
+
+		// Prepare the final data structure
+		// $finalData = [
+		// 	'categories' => $categories,
+		// 	'series' => array_values($seriesData)
+		// ];
+
+
+		$this->response(array_values($seriesData), RestController::HTTP_OK);
 	}
 
 
