@@ -16,6 +16,7 @@ class OldTripTicket extends RestController
 		parent::__construct();
 		$this->load->model('OldTripTicketModel');
 		$this->load->model('ControlNumberModel');
+		$this->load->model('UserModel');
 
 	}
 
@@ -178,6 +179,8 @@ class OldTripTicket extends RestController
 			$data['remarks'] = $requestData['remarks'];
 		}
 
+		 
+
 
 		$update_result = $oldTripTicketModel->update($id, $data);
 
@@ -219,57 +222,85 @@ class OldTripTicket extends RestController
 
 		}
 	}
-
-
-
-
+	
 
 	public function work_trend_get()
-	{ 
+	{
 		$oldTripTicketModel = new OldTripTicketModel();
+		$user = new UserModel;
 
-		$dates = $oldTripTicketModel->get_date(); 
+
+		
+		$requestData = $this->input->get();
+		
+
+
+		$users = $user->get();
+
 		$categories = [];
-		$seriesData = [];
+		$seriesData = []; 
 
-		foreach ($dates as $date) {
-			$categories[] = date('m/d/Y', strtotime($date->date));
-		}
-
-		$encoded_datas = $oldTripTicketModel->get_encoded_data();
-		$encodedData = [];
-		foreach ($encoded_datas as $encoded) {
-
-			$encodedData[$encoded->first_name][$encoded->encoded_at] = $encoded->total_encoded;
+		$currentYear = date('Y');
+		$currentMonth = date('m'); 
+		
+		if(isset($requestData['month']) && !empty($requestData['month'])){
+			$currentMonth = $requestData['month'];
 		}
 
 
+		$finalData = []; 
 
-		// Generate series array
-		$series = [];
-		foreach ($encodedData as $first_name => $data) {
-			$seriesData = [];
-			foreach ($categories as $date) {
+		$startDate = DateTime::createFromFormat('Y-m-d', "$currentYear-$currentMonth-01");
 
+		// Get the number of days in the specified month
+		$daysInMonth = $startDate->format('t');
 
-				$seriesData[] = isset($data[date('Y-m-d', strtotime($date))]) ? (int) $data[date('Y-m-d', strtotime($date))] : 0;
-			}
-			$series[] = [
-				'name' => trim($first_name),
-				'data' => $seriesData
+		foreach ($users as $user) {
+			$seriesData[$user->id] = [
+				'name' => $user->first_name,
+				'data' => array_fill(0, $daysInMonth, 0)
 			];
 		}
 
-		$data = array(
+		for ($day = 1; $day <= $daysInMonth; $day++) {
+			// Create a DateTime object for each day of the month
+			$date = DateTime::createFromFormat('Y-m-d', "$currentYear-$currentMonth-$day");
+
+			// Get the day formatted as 'd'
+			$dayFormatted = $date->format('d');
+
+			// Add the day to the categories array
+			$categories[] = $date->format('j'); // 'j' format will give day of the month without leading zeros
+
+			foreach ($users as $user) {
+
+				$trendData = array(
+					'old_trip_ticket.user_id' => $user->id,
+					'day(encoded_at)' => $dayFormatted,
+					'month(encoded_at)' => $currentMonth,
+					'year(encoded_at)' => $currentYear,
+				);
+
+				$result = $oldTripTicketModel->get_work_details($trendData);
+
+				if ($result) {
+					// $arr = ['john cris', [2,3,3,1]];
+					$seriesData[$user->id]['data'][$day - 1] = floatval($result->total);
+
+				}
+			}
+		}
+
+		// Prepare the final data structure
+		$finalData = [
 			'categories' => $categories,
-			'series' => $series,
-		);
+			'series' => array_values($seriesData)
+		];
 
 
-		$this->response($data, RestController::HTTP_OK);
+		$this->response($finalData, RestController::HTTP_OK);
 
 	}
-
 
 
 }

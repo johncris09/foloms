@@ -1,11 +1,31 @@
 import React from 'react'
-import { CCard, CCardBody } from '@coreui/react'
+import {
+  CButton,
+  CButtonGroup,
+  CCard,
+  CCardBody,
+  CCol,
+  CDropdown,
+  CDropdownDivider,
+  CDropdownItem,
+  CDropdownMenu,
+  CDropdownToggle,
+  CForm,
+  CFormSelect,
+  CInputGroup,
+  CRow,
+} from '@coreui/react'
 import { Skeleton } from '@mui/material'
 import ApexCharts from 'react-apexcharts'
+import { api, months } from 'src/components/SystemConfiguration'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faFilter, faTimes } from '@fortawesome/free-solid-svg-icons'
+import CIcon from '@coreui/icons-react'
+import { cilFilter } from '@coreui/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from 'src/components/SystemConfiguration'
 
 const TripTicketUserWork = () => {
+  const queryClient = useQueryClient()
   const tripTicketWorkTrend = useQuery({
     queryFn: async () =>
       await api.get('trip_ticket/work_trend').then((response) => {
@@ -13,8 +33,37 @@ const TripTicketUserWork = () => {
       }),
     queryKey: ['tripTicketWorkTrend'],
     staleTime: Infinity,
-    refetchInterval: 1000,
+    // refetchInterval: 1000,
   })
+
+  const filter = useMutation({
+    mutationKey: ['filterTripTicketWorkTrend'],
+    mutationFn: async (values) => {
+      const response = await api.get('trip_ticket/work_trend', {
+        params: values,
+      })
+      return response
+    },
+    onSuccess: async (response) => {
+      await queryClient.setQueryData(['tripTicketWorkTrend'], response.data)
+    },
+    onError: (error) => {
+      console.info(error.response.data)
+      // toast.error(error.response.data.message)
+    },
+  })
+
+  const handleSubmit = async (event, data) => {
+    await filter.mutate(data)
+  }
+
+  const getCurrentMonthNumber = () => {
+    const date = new Date()
+    return date.getMonth() + 1 // getMonth() returns 0-based index, so add 1
+  }
+
+  const currentMonthNumber = getCurrentMonthNumber()
+
   return (
     <>
       <CCard>
@@ -22,6 +71,35 @@ const TripTicketUserWork = () => {
           <div className="d-flex justify-content-between">
             <div>
               <p className="h6">Monitor User&apos;s Work (Trip Ticket)</p>
+            </div>
+            <div style={{ marginTop: -10 }}>
+              <CButtonGroup>
+                <CDropdown>
+                  <CDropdownToggle color="transparent" variant="outline" caret={false}>
+                    <CIcon icon={cilFilter} />
+                  </CDropdownToggle>
+                  <CDropdownMenu>
+                    <CDropdownItem onClick={(e) => handleSubmit(e, { month: currentMonthNumber })}>
+                      This Month
+                    </CDropdownItem>
+
+                    <CDropdownDivider />
+                    {months.map((month, index) => (
+                      <CDropdownItem
+                        key={index}
+                        onClick={(e) => handleSubmit(e, { month: month.number })}
+                      >
+                        {month.name}
+                      </CDropdownItem>
+                    ))}
+
+                    <CDropdownDivider />
+                    {/* <CDropdownItem onClick={(e) => handleSubmit(e, { filter_by: 'year' })}>
+                      Clear Filter
+                    </CDropdownItem> */}
+                  </CDropdownMenu>
+                </CDropdown>
+              </CButtonGroup>
             </div>
           </div>
 
