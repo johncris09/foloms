@@ -346,7 +346,10 @@ const MonthlyReport = ({ cardTitle }) => {
                           }}
                         >
                           <Text style={{ fontSize: 10 }}>
-                            {row.total_approximate_distance_traveled}
+                            {row.total_approximate_distance_traveled.toLocaleString('en-US', {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
                           </Text>
                         </View>
 
@@ -364,7 +367,12 @@ const MonthlyReport = ({ cardTitle }) => {
                             display: 'flex',
                           }}
                         >
-                          <Text style={{ fontSize: 10 }}>{row.total_purchased}</Text>
+                          <Text style={{ fontSize: 10 }}>
+                            {row.total_purchased.toLocaleString('en-US', {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </Text>
                         </View>
 
                         <View
@@ -382,7 +390,10 @@ const MonthlyReport = ({ cardTitle }) => {
                           }}
                         >
                           <Text style={{ fontSize: 10 }}>
-                            {row.total_lubricating_oil_issued_purchased}
+                            {row.total_lubricating_oil_issued_purchased.toLocaleString('en-US', {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
                           </Text>
                         </View>
                         <View
@@ -399,7 +410,12 @@ const MonthlyReport = ({ cardTitle }) => {
                             display: 'flex',
                           }}
                         >
-                          <Text style={{ fontSize: 10 }}>{row.total_grease_issued_purchased}</Text>
+                          <Text style={{ fontSize: 10 }}>
+                            {row.total_grease_issued_purchased.toLocaleString('en-US', {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </Text>
                         </View>
                         <View
                           style={{
