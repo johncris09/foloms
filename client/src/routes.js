@@ -63,14 +63,14 @@ const routes = [
   },
   {
     path: '/equipment',
-    user: ['Super Admin', 'Admin'],
+    user: ['Super Admin'],
     exact: true,
     name: 'Equipment',
     element: Equipment,
   },
   {
     path: '/driver',
-    user: ['Super Admin', 'Admin'],
+    user: ['Super Admin'],
     exact: true,
     name: 'Driver',
     element: Driver,
@@ -91,7 +91,7 @@ const routes = [
   },
   {
     path: '/supplier',
-    user: ['Super Admin', 'Admin'],
+    user: ['Super Admin'],
     exact: true,
     name: 'Supplier',
     element: Supplier,

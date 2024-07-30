@@ -56,20 +56,14 @@ const _nav = (userInfo) => {
         component: CNavItem,
         name: 'Delivery',
         to: '/delivery',
-        badge: {
-          color: 'info',
-          text: 'NEW',
-        },
+
         icon: <CIcon icon={cilClipboard} customClassName="nav-icon" />,
       },
       {
         component: CNavItem,
         name: 'Supplier',
         to: '/supplier',
-        badge: {
-          color: 'info',
-          text: 'NEW',
-        },
+
         icon: <CIcon icon={cilTruck} customClassName="nav-icon" />,
       },
       {
@@ -150,38 +144,13 @@ const _nav = (userInfo) => {
         to: '/old_trip_ticket',
         icon: <CIcon icon={cilFile} customClassName="nav-icon" />,
       },
-      {
-        component: CNavItem,
-        name: 'Equipment',
-        to: '/equipment',
-        icon: <CIcon icon={cilChildFriendly} customClassName="nav-icon" />,
-      },
 
       {
         component: CNavItem,
         name: 'Delivery',
         to: '/delivery',
-        badge: {
-          color: 'info',
-          text: 'NEW',
-        },
+
         icon: <CIcon icon={cilClipboard} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Supplier',
-        to: '/supplier',
-        badge: {
-          color: 'info',
-          text: 'NEW',
-        },
-        icon: <CIcon icon={cilTruck} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Driver',
-        to: '/driver',
-        icon: <CIcon icon={cilPeople} customClassName="nav-icon" />,
       },
       {
         component: CNavItem,
