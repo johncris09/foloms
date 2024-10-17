@@ -199,6 +199,33 @@ class TripTicketModel extends CI_Model
 	}
 
 
+	// public function get_driver($data)
+	// {
+	// 	$query = $this->db->query("
+	// 		SELECT
+	// 			driver.id driver_id,
+	// 			driver.last_name,
+	// 			driver.first_name,
+	// 			driver.middle_name,
+	// 			driver.suffix,
+	// 			trip_ticket.equipment equipment_id,
+	// 			equipment.plate_number,
+	// 			equipment.model,
+	// 		FROM
+	// 			`trip_ticket`
+	// 		LEFT JOIN driver ON driver.id = trip_ticket.driver
+	// 		LEFT JOIN equipment ON equipment.id = trip_ticket.equipment
+	// 		WHERE
+	// 			purchase_date BETWEEN '" . $data['start_date'] . "' AND '" . $data['end_date'] . "' 
+	// 		GROUP BY
+	// 			trip_ticket.driver
+	// 		ORDER BY
+	// 			driver.last_name ASC;
+
+	// 	");
+
+	// 	return $query->result();
+	// }
 
 	public function get_driver($data)
 	{
@@ -213,11 +240,11 @@ class TripTicketModel extends CI_Model
 		$this->db
 			->select(' 
 				driver.id driver_id,
-				equipment,
 				driver.last_name,
 				driver.first_name,
 				driver.middle_name,
 				driver.suffix,
+				equipment.id equipment_id,
 				equipment.plate_number,
 				equipment.model,
 			')
@@ -231,7 +258,7 @@ class TripTicketModel extends CI_Model
 			->group_by($group_by)
 			->order_by('driver.last_name', 'asc');
 
-
+		// return  $this->db->get_compiled_select();
 		$query = $this->db->get();
 		return $query->result();
 	}
@@ -267,10 +294,44 @@ class TripTicketModel extends CI_Model
 
 
 		$query = $this->db->get();
-
 		return $query->result();
 	}
 
+	public function get_equipment_report_type_2($data)
+	{
+		$this->db
+			->select('
+				trip_ticket.purchase_date,
+				trip_ticket.id,
+				trip_ticket.equipment,
+				trip_ticket.purposes,
+				trip_ticket.lubricating_oil_issued_purchased,
+				trip_ticket.distance_traveled,
+				trip_ticket.grease_issued_purchased,
+				trip_ticket.approximate_distance_traveled,
+				equipment.model,
+				equipment.include_description,
+				equipment.plate_number,
+				trip_ticket.departure_time,
+				trip_ticket.arrival_time_at_destination,
+				trip_ticket.departure_time_from_destination,
+				trip_ticket.arrival_time_back,
+				trip_ticket.gasoline_issued_by_office,
+				trip_ticket.gasoline_purchased   
+			')
+			->from('trip_ticket')
+			->join('driver', 'trip_ticket.driver = driver.id', 'LEFT')
+			->join('equipment', 'trip_ticket.equipment = equipment.id', 'LEFT')
+
+			->where($data)
+			->group_by('equipment.id')
+			->order_by('trip_ticket.purchase_date asc')
+		;
+
+
+		$query = $this->db->get();
+		return $query->result();
+	}
 
 
 
@@ -420,7 +481,7 @@ class TripTicketModel extends CI_Model
 	}
 
 
-	
+
 
 	public function get_top_driver($data, $limit)
 	{
@@ -447,7 +508,7 @@ class TripTicketModel extends CI_Model
 
 
 
-	
+
 
 	public function get_top_equipment($data, $limit)
 	{
@@ -473,7 +534,7 @@ class TripTicketModel extends CI_Model
 
 	public function get_total_by_office_by_product($data)
 	{
-	$this->db->select('
+		$this->db->select('
 				office.id, 
 				office.abbr office,  
 				product.product,
@@ -596,6 +657,19 @@ class TripTicketModel extends CI_Model
 		$query = $this->db->get();
 
 		return $query->row();
+
+	}
+
+	public function update_trip_ticket_unit_cost_by_previous_next_delivery($data)
+	{
+
+		$this->db->set('unit_cost', $data['unit_cost']);
+		$this->db->where('product', $data['product']);
+		$this->db->where('DATE(purchase_date) >=', $data['previous_delivery_date']);
+		$this->db->where('DATE(purchase_date) <=', $data['next_delivery_date']);
+		return $this->db->update($this->table);
+		
+
 
 	}
 }

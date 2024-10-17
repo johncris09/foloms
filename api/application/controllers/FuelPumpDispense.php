@@ -6,7 +6,7 @@ require APPPATH . 'libraries/Format.php';
 
 use chriskacerguis\RestServer\RestController;
 
-class SummaryConsumption extends RestController
+class FuelPumpDispense extends RestController
 {
 
 	function __construct()
@@ -14,6 +14,9 @@ class SummaryConsumption extends RestController
 		// Construct the parent class
 		parent::__construct();
 		$this->load->model('TripTicketModel');
+		$this->load->model('ProductModel');
+		$this->load->model('DeliveryModel');
+		
 
 	}
 	public function index_get()
@@ -24,11 +27,19 @@ class SummaryConsumption extends RestController
 	public function filter_get()
 	{
 		$tripTicketModel = new TripTicketModel;
+		$deliveryModel = new DeliveryModel;
+		$productModel = new ProductModel;
 		$requestData = $this->input->get();
 
-		$data = array(
-			'trip_ticket.purchase_date' => date('Y-m-d', strtotime($requestData['purchase_date']))
-		);
+		$data = [];
+		if (isset($requestData['purchase_date']) && $requestData['purchase_date'] != "") {
+			$data = array(
+				'trip_ticket.purchase_date' => date('Y-m-d', strtotime($requestData['purchase_date']))
+			);
+		}
+		if (isset($requestData['office']) && $requestData['office'] != "") {
+			$data['equipment.office'] = $requestData['office'];
+		}
 
 		$summary_consumptions = $tripTicketModel->get_summary_consumption($data);
 		$summary_consumption_data = [];
@@ -79,11 +90,43 @@ class SummaryConsumption extends RestController
 
 		}
 
+
+		$products = $productModel->get();
+		$product_summary_consumption = [];
+
+		$unit_cost = 0;
+
+		foreach ($products as $product) {
+
+
+			if (in_array(strtolower($product->product), ['diesel', 'premium', 'regular'])) {
+				$data['product.id'] = $product->id;
+				$previous_delivery_data = array(
+					'product' => $product->id,
+                    'date <=' => date('Y-m-d', strtotime($requestData['purchase_date']))
+				);
+
+				$previous_delivery = $deliveryModel->get_previous_delivery_data($previous_delivery_data, 1);
+				
+				$unit_cost = 	$previous_delivery->price ;
+				
+				$consumption = $tripTicketModel->get_product_summary_consumption($data);
+				$product_summary_consumption[] = array(
+					'product' => $consumption->product,
+					'unit_cost' => $unit_cost,
+					'total_purchase' => $consumption->total_purchase ? $consumption->total_purchase : number_format(0, 2, '.', ','),
+					// 'total_cost' => $consumption->total_purchase ? $consumption->total_purchase : number_format(0, 2, '.', ','),
+				);
+			}
+
+		}
+
 		$result = array(
 			'consumption' => $summary_consumption_data,
-			'summary' => $tripTicketModel->get_product_summary_consumption($data),
+			'summary' => $product_summary_consumption,
 
 		);
+
 		$this->response($result, RestController::HTTP_OK);
 
 	}

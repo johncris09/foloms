@@ -111,122 +111,249 @@ const Product = ({ cardTitle }) => {
     <>
       <ToastContainer />
 
-      <PageTitle pageTitle={cardTitle} />
-      <MaterialReactTable
-        columns={column}
-        data={!product.isLoading && product.data}
-        state={{
-          isLoading: product.isLoading || insertProduct.isPending || updateProduct.isPending,
-          isSaving: product.isLoading || insertProduct.isPending || updateProduct.isPending,
-          showLoadingOverlay:
-            product.isLoading || insertProduct.isPending || updateProduct.isPending,
-          showProgressBars: product.isLoading || insertProduct.isPending || updateProduct.isPending,
-          showSkeletons: product.isLoading || insertProduct.isPending || updateProduct.isPending,
-        }}
-        muiCircularProgressProps={{
-          color: 'secondary',
-          thickness: 5,
-          size: 55,
-        }}
-        muiSkeletonProps={{
-          animation: 'pulse',
-          height: 28,
-        }}
-        columnFilterDisplayMode="popover"
-        paginationDisplayMode="pages"
-        positionToolbarAlertBanner="bottom"
-        enableStickyHeader
-        enableStickyFooter
-        enableRowActions
-        initialState={{
-          density: 'compact',
-          columnPinning: { left: ['mrt-row-actions'] },
-        }}
-        renderTopToolbarCustomActions={({ row, table }) => (
-          <Box
-            className="d-none d-lg-flex"
-            sx={{
-              display: 'flex',
-              gap: '.2rem',
-              p: '0.5rem',
-              flexWrap: 'wrap',
+      <CRow>
+        <CCol md={12}>
+          <PageTitle pageTitle={cardTitle} />
+          <MaterialReactTable
+            columns={column}
+            data={!product.isLoading && product.data}
+            state={{
+              isLoading: product.isLoading || insertProduct.isPending || updateProduct.isPending,
+              isSaving: product.isLoading || insertProduct.isPending || updateProduct.isPending,
+              showLoadingOverlay:
+                product.isLoading || insertProduct.isPending || updateProduct.isPending,
+              showProgressBars:
+                product.isLoading || insertProduct.isPending || updateProduct.isPending,
+              showSkeletons:
+                product.isLoading || insertProduct.isPending || updateProduct.isPending,
             }}
-          >
-            <Button
-              color="primary"
-              variant="outlined"
-              size="medium"
-              title="Add New"
-              shape="rounded"
-              style={{ fontSize: 20 }}
-              onClick={() => {
-                form.resetForm()
-
-                setModalVisible(!modalVisible)
-              }}
-            >
-              <FontAwesomeIcon icon={faPlus} />
-            </Button>
-          </Box>
-        )}
-        renderRowActions={({ row, table }) => (
-          <Box sx={{ display: 'flex', flexWrap: 'nowrap' }}>
-            <Tooltip title="Edit">
-              <IconButton
-                color="warning"
-                onClick={() => {
-                  form.setValues({
-                    id: row.original.id,
-                    last_name: row.original.last_name,
-                    first_name: row.original.first_name,
-                    middle_name: row.original.middle_name,
-                    contact_number: row.original.contact_number,
-                  })
-                  setModalVisible(true)
+            muiCircularProgressProps={{
+              color: 'secondary',
+              thickness: 5,
+              size: 55,
+            }}
+            muiSkeletonProps={{
+              animation: 'pulse',
+              height: 28,
+            }}
+            columnFilterDisplayMode="popover"
+            paginationDisplayMode="pages"
+            positionToolbarAlertBanner="bottom"
+            enableStickyHeader
+            enableStickyFooter
+            enableRowActions
+            initialState={{
+              density: 'compact',
+              columnPinning: { left: ['mrt-row-actions'] },
+            }}
+            renderTopToolbarCustomActions={({ row, table }) => (
+              <Box
+                className="d-none d-lg-flex"
+                sx={{
+                  display: 'flex',
+                  gap: '.2rem',
+                  p: '0.5rem',
+                  flexWrap: 'wrap',
                 }}
               >
-                <EditSharp />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Delete">
-              <IconButton
-                color="error"
-                onClick={() => {
-                  Swal.fire({
-                    title: 'Are you sure?',
-                    text: "You won't be able to revert this!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes, delete it!',
-                  }).then(async (result) => {
-                    if (result.isConfirmed) {
-                      validationPrompt(async () => {
-                        let id = row.original.id
+                <Button
+                  color="primary"
+                  variant="outlined"
+                  size="medium"
+                  title="Add New"
+                  shape="rounded"
+                  style={{ fontSize: 20 }}
+                  onClick={() => {
+                    form.resetForm()
 
-                        await api
-                          .delete('product/delete/' + id)
-                          .then(async (response) => {
-                            await queryClient.invalidateQueries(['product'])
-
-                            toast.success(response.data.message)
-                          })
-                          .catch((error) => {
-                            console.info(error.response.data)
-                            // toast.error(handleError(error))
-                          })
+                    setModalVisible(!modalVisible)
+                  }}
+                >
+                  <FontAwesomeIcon icon={faPlus} />
+                </Button>
+              </Box>
+            )}
+            renderRowActions={({ row, table }) => (
+              <Box sx={{ display: 'flex', flexWrap: 'nowrap' }}>
+                <Tooltip title="Edit">
+                  <IconButton
+                    color="warning"
+                    onClick={() => {
+                      form.setValues({
+                        id: row.original.id,
+                        last_name: row.original.last_name,
+                        first_name: row.original.first_name,
+                        middle_name: row.original.middle_name,
+                        contact_number: row.original.contact_number,
                       })
-                    }
-                  })
+                      setModalVisible(true)
+                    }}
+                  >
+                    <EditSharp />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Delete">
+                  <IconButton
+                    color="error"
+                    onClick={() => {
+                      Swal.fire({
+                        title: 'Are you sure?',
+                        text: "You won't be able to revert this!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes, delete it!',
+                      }).then(async (result) => {
+                        if (result.isConfirmed) {
+                          validationPrompt(async () => {
+                            let id = row.original.id
+
+                            await api
+                              .delete('product/delete/' + id)
+                              .then(async (response) => {
+                                await queryClient.invalidateQueries(['product'])
+
+                                toast.success(response.data.message)
+                              })
+                              .catch((error) => {
+                                console.info(error.response.data)
+                                // toast.error(handleError(error))
+                              })
+                          })
+                        }
+                      })
+                    }}
+                  >
+                    <DeleteOutline />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            )}
+          />
+        </CCol>
+
+        {/* <CCol md={7}>
+          <PageTitle pageTitle={'Unit Cost'} />
+          <MaterialReactTable
+            columns={column}
+            data={!product.isLoading && product.data}
+            state={{
+              isLoading: product.isLoading || insertProduct.isPending || updateProduct.isPending,
+              isSaving: product.isLoading || insertProduct.isPending || updateProduct.isPending,
+              showLoadingOverlay:
+                product.isLoading || insertProduct.isPending || updateProduct.isPending,
+              showProgressBars:
+                product.isLoading || insertProduct.isPending || updateProduct.isPending,
+              showSkeletons:
+                product.isLoading || insertProduct.isPending || updateProduct.isPending,
+            }}
+            muiCircularProgressProps={{
+              color: 'secondary',
+              thickness: 5,
+              size: 55,
+            }}
+            muiSkeletonProps={{
+              animation: 'pulse',
+              height: 28,
+            }}
+            columnFilterDisplayMode="popover"
+            paginationDisplayMode="pages"
+            positionToolbarAlertBanner="bottom"
+            enableStickyHeader
+            enableStickyFooter
+            enableRowActions
+            initialState={{
+              density: 'compact',
+              columnPinning: { left: ['mrt-row-actions'] },
+            }}
+            renderTopToolbarCustomActions={({ row, table }) => (
+              <Box
+                className="d-none d-lg-flex"
+                sx={{
+                  display: 'flex',
+                  gap: '.2rem',
+                  p: '0.5rem',
+                  flexWrap: 'wrap',
                 }}
               >
-                <DeleteOutline />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        )}
-      />
+                <Button
+                  color="primary"
+                  variant="outlined"
+                  size="medium"
+                  title="Add New"
+                  shape="rounded"
+                  style={{ fontSize: 20 }}
+                  onClick={() => {
+                    form.resetForm()
+
+                    setModalVisible(!modalVisible)
+                  }}
+                >
+                  <FontAwesomeIcon icon={faPlus} />
+                </Button>
+              </Box>
+            )}
+            renderRowActions={({ row, table }) => (
+              <Box sx={{ display: 'flex', flexWrap: 'nowrap' }}>
+                <Tooltip title="Edit">
+                  <IconButton
+                    color="warning"
+                    onClick={() => {
+                      form.setValues({
+                        id: row.original.id,
+                        last_name: row.original.last_name,
+                        first_name: row.original.first_name,
+                        middle_name: row.original.middle_name,
+                        contact_number: row.original.contact_number,
+                      })
+                      setModalVisible(true)
+                    }}
+                  >
+                    <EditSharp />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Delete">
+                  <IconButton
+                    color="error"
+                    onClick={() => {
+                      Swal.fire({
+                        title: 'Are you sure?',
+                        text: "You won't be able to revert this!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes, delete it!',
+                      }).then(async (result) => {
+                        if (result.isConfirmed) {
+                          validationPrompt(async () => {
+                            let id = row.original.id
+
+                            await api
+                              .delete('product/delete/' + id)
+                              .then(async (response) => {
+                                await queryClient.invalidateQueries(['product'])
+
+                                toast.success(response.data.message)
+                              })
+                              .catch((error) => {
+                                console.info(error.response.data)
+                                // toast.error(handleError(error))
+                              })
+                          })
+                        }
+                      })
+                    }}
+                  >
+                    <DeleteOutline />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            )}
+          />
+        </CCol> */}
+      </CRow>
 
       <CModal
         alignment="center"
@@ -234,7 +361,7 @@ const Product = ({ cardTitle }) => {
         onClose={() => setModalVisible(false)}
         backdrop="static"
         keyboard={false}
-        size="lg"
+        size="md"
       >
         <CModalHeader>
           <CModalTitle>{form.values.id ? `Edit ${cardTitle}` : `Add New ${cardTitle}`}</CModalTitle>

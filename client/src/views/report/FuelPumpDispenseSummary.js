@@ -785,11 +785,11 @@ const FuelPumpDispenseSummary = ({ cardTitle }) => {
                                     <Text style={styles2.tableCell}>{row.total_purchase}</Text>
                                   </View>
                                   <View style={styles2.tableCol}>
-                                    <Text style={styles2.tableCell}>{row.total_cost}</Text>
+                                    <Text style={styles2.tableCell}>{row.unit_cost}</Text>
                                   </View>
                                   <View style={styles2.tableColTotalAmount}>
                                     <Text style={styles2.tableCell}>
-                                      {(row.total_purchase * row.total_cost).toLocaleString(
+                                      {(row.total_purchase * row.unit_cost).toLocaleString(
                                         'en-US',
                                         {
                                           minimumFractionDigits: 2,

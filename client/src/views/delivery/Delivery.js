@@ -23,7 +23,7 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useFormik } from 'formik'
 import { ToastContainer, toast } from 'react-toastify'
 import { Box, Button, IconButton, Tooltip } from '@mui/material'
-import { DeleteOutline, EditSharp } from '@mui/icons-material'
+import { DeleteOutline, EditSharp, Update } from '@mui/icons-material'
 import {
   DefaultLoading,
   RequiredFieldNote,
@@ -52,6 +52,10 @@ const Office = ({ cardTitle }) => {
     {
       accessorKey: 'liters',
       header: 'Liters',
+    },
+    {
+      accessorKey: 'price',
+      header: 'Price',
     },
     {
       accessorKey: 'supplier',
@@ -102,6 +106,7 @@ const Office = ({ cardTitle }) => {
     liters: Yup.string().required('Liters is required'),
     supplier: Yup.string().required('Supplier is required'),
     product: Yup.string().required('Product is required'),
+    price: Yup.string().required('Price is required'),
   })
   const form = useFormik({
     initialValues: {
@@ -110,6 +115,7 @@ const Office = ({ cardTitle }) => {
       liters: '',
       supplier: '',
       product: '',
+      price: '',
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
@@ -130,7 +136,6 @@ const Office = ({ cardTitle }) => {
         toast.success(response.data.message)
       }
       form.resetForm()
-      // tripTicketProductInputRef.current.clearValue()
       await queryClient.invalidateQueries(['delivery'])
     },
     onError: (error) => {
@@ -164,8 +169,60 @@ const Office = ({ cardTitle }) => {
   const handleSelectChange = (selectedOption, ref) => {
     form.setFieldValue(ref.name, selectedOption ? selectedOption.value : '')
   }
+
+  // get the previous and next (-1 day) delivery date
+  const handleUpdatePrice = useMutation({
+    mutationFn: async (data) => {
+      return await api.get('delivery/get_previous_next_delivery/', { params: data })
+    },
+    onSuccess: async (response, data) => {
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        html:
+          'You are going to update the unit cost, which is  <strong><u>' +
+          response.data[0].price +
+          ' </u></strong> in the trip ticket from  <strong><u>' +
+          response.data[0].date +
+          ' </u></strong></strong>  to  <strong><u>' +
+          response.data[1].date +
+          '</u></strong></strong>.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, update it!',
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          updateTripTicketUnitCostByPreviousNextDelivery.mutate({
+            previous_delivery_date: response.data[0].date,
+            next_delivery_date: response.data[1].date,
+            unit_cost: response.data[0].price,
+            product: data.product,
+          })
+        }
+      })
+    },
+  })
+
+  const updateTripTicketUnitCostByPreviousNextDelivery = useMutation({
+    mutationFn: async (data) => {
+      return await api.put('delivery/update_trip_ticket_unit_cost_by_previous_next_delivery/', data)
+    },
+    onSuccess: async (response) => {
+      toast.success(response.data.message)
+
+      await queryClient.invalidateQueries(['tripTicket'])
+    },
+    onError: (error) => {
+      console.info(error.response.data)
+    },
+  })
+
   return (
     <>
+      {handleUpdatePrice.isPending ||
+        (updateTripTicketUnitCostByPreviousNextDelivery.isPending && <DefaultLoading />)}
       <ToastContainer />
       <PageTitle pageTitle={cardTitle} />
       <MaterialReactTable
@@ -228,6 +285,19 @@ const Office = ({ cardTitle }) => {
         )}
         renderRowActions={({ row, table }) => (
           <Box sx={{ display: 'flex', flexWrap: 'nowrap' }}>
+            <Tooltip title="Update Price in Trip Ticket">
+              <IconButton
+                color="primary"
+                onClick={() => {
+                  handleUpdatePrice.mutate({
+                    product: row.original.product_id,
+                    date: row.original.date,
+                  })
+                }}
+              >
+                <Update />
+              </IconButton>
+            </Tooltip>
             <Tooltip title="Edit">
               <IconButton
                 color="warning"
@@ -238,6 +308,7 @@ const Office = ({ cardTitle }) => {
                     liters: row.original.liters,
                     supplier: row.original.supplier_id,
                     product: row.original.product_id,
+                    price: row.original.price,
                   })
                   setModalVisible(true)
                 }}
@@ -327,6 +398,22 @@ const Office = ({ cardTitle }) => {
                 />
                 {form.touched.liters && form.errors.liters && (
                   <CFormText className="text-danger">{form.errors.liters}</CFormText>
+                )}
+              </CCol>
+
+              <CCol md={12}>
+                <CFormInput
+                  type="number"
+                  label={requiredField('Price')}
+                  name="price"
+                  step={0.01}
+                  onChange={handleInputChange}
+                  value={form.values.price}
+                  placeholder="Price"
+                  invalid={form.touched.price && form.errors.price}
+                />
+                {form.touched.price && form.errors.price && (
+                  <CFormText className="text-danger">{form.errors.price}</CFormText>
                 )}
               </CCol>
               <CCol md={12}>

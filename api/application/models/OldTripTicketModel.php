@@ -53,6 +53,7 @@ class OldTripTicketModel extends CI_Model
 				equipment.model,
 				equipment.plate_number,
 				equipment.fuel_capacity,
+				equipment_type.tank_balance,
 				equipment.office,
 				equipment_type.times,
 				office.id office_id,
@@ -281,11 +282,11 @@ class OldTripTicketModel extends CI_Model
 			LEFT JOIN users ON old_trip_ticket.`user_id` = users.`id`
 			GROUP BY users.id, DATE(old_trip_ticket.`encoded_at`)
 			ORDER BY DATE(old_trip_ticket.`encoded_at`)
-		"; 
+		";
 
 		$query = $this->db->query($query_string);
 
-			
+
 		return $query->result();
 	}
 
@@ -300,8 +301,22 @@ class OldTripTicketModel extends CI_Model
 		$query = $this->db
 			->query($query_string);
 
-			
+
 		return $query->result();
 	}
+
+
+	public function get_work_details($data)
+	{
+		$this->db->select('COUNT(*) AS total')
+			->from('old_trip_ticket')
+			->join('users', 'old_trip_ticket.user_id = users.id', 'LEFT')
+			->where($data);
+		$query = $this->db->get();
+
+		return $query->row();
+
+	}
+
 
 }

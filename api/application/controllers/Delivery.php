@@ -102,6 +102,7 @@ class Delivery extends RestController
 			'liters' => $requestData['liters'],
 			'supplier' => $requestData['supplier'],
 			'product' => $requestData['product'],
+			'price' => $requestData['price'],
  
 		);
 
@@ -143,6 +144,9 @@ class Delivery extends RestController
 			$data['product'] = $requestData['product'];
 		}
 
+		if (isset($requestData['price'])) {
+			$data['price'] = $requestData['price'];
+		}
 		$update_result = $deliveryModel->update($id, $data);
 
 		if ($update_result > 0) {
@@ -179,4 +183,41 @@ class Delivery extends RestController
 		}
 	}
 
+	public function get_previous_next_delivery_get()
+	{	
+
+		$deliveryModel = new DeliveryModel;
+		$requestData = $this->input->get();
+
+		
+		$result = $deliveryModel->get_previous_next_delivery($requestData);
+		$this->response($result, RestController::HTTP_OK);
+
+	}
+
+	public function update_trip_ticket_unit_cost_by_previous_next_delivery_put()
+	{
+		$tripTicketModel = new TripTicketModel;
+		
+		$requestData = json_decode($this->input->raw_input_stream, true);
+	
+		
+		
+		$result = $tripTicketModel->update_trip_ticket_unit_cost_by_previous_next_delivery( $requestData);
+
+		if ($result ) {
+			$this->response([
+				'status' => true,
+				'message' => 'Successfully Updated.'
+			], RestController::HTTP_OK);
+		} else {
+
+			$this->response([
+				'status' => false,
+				'message' => 'Failed to update.'
+			], RestController::HTTP_BAD_REQUEST);
+
+		}
+
+	}
 }
