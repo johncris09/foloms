@@ -172,6 +172,7 @@ class TransactionModel extends CI_Model
 
 	public function get_transaction()
 	{
+		
 		$query = $this->db
 			->query('  
 				SELECT
@@ -259,7 +260,7 @@ class TransactionModel extends CI_Model
 
 	}
 
-	public function filter_transaction($data)
+	public function filter_transaction($data = null)
 	{
 
 		$query_string = '
@@ -310,7 +311,7 @@ class TransactionModel extends CI_Model
 				) AS regular_delivery
 			FROM
 				(SELECT
-				DATE,
+				date,
 				product,
 				delivery,
 				consumption
@@ -342,18 +343,15 @@ class TransactionModel extends CI_Model
 				GROUP BY c.purchase_date,
 					c.product) AS a) t1';
 
-		if(isset($data)){
-			$query_string .= '  
-			where month(date) = '.$data['month'].' and 
-			  year(date) = '.$data['year'].'    
-			
-
-			';
-		}
+		// if(isset($data)){
+		// 	$query_string .= '  
+		// 	where month(date) = '.$data['month'].' and  year(date) = '.$data['year'].'   ';
+		// }
 		$query_string .= ' 
 		
 			GROUP BY DATE
 			ORDER BY DATE';
+		
 
 		$query = $this->db->query($query_string);
 
