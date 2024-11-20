@@ -50,7 +50,8 @@ const Office = ({ cardTitle }) => {
       await api.get('office').then((response) => {
         return response.data
       }),
-    queryKey: ['office'],
+    throwOnError: true,
+
     staleTime: Infinity,
   })
 

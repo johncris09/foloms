@@ -16,7 +16,7 @@ class FuelPumpDispense extends RestController
 		$this->load->model('TripTicketModel');
 		$this->load->model('ProductModel');
 		$this->load->model('DeliveryModel');
-		
+
 
 	}
 	public function index_get()
@@ -31,6 +31,8 @@ class FuelPumpDispense extends RestController
 		$productModel = new ProductModel;
 		$requestData = $this->input->get();
 
+
+
 		$data = [];
 		if (isset($requestData['purchase_date']) && $requestData['purchase_date'] != "") {
 			$data = array(
@@ -41,7 +43,19 @@ class FuelPumpDispense extends RestController
 			$data['equipment.office'] = $requestData['office'];
 		}
 
+		if (isset($requestData['office']) && $requestData['office'] != "") {
+			$data['equipment.office'] = $requestData['office'];
+		}
+
+		if (isset($requestData['product_type']) && $requestData['product_type'] != "") {
+			$data['product.id'] = $requestData['product_type'];
+		}
+
+
+
+
 		$summary_consumptions = $tripTicketModel->get_summary_consumption($data);
+		// $this->response($summary_consumptions, RestController::HTTP_OK);
 		$summary_consumption_data = [];
 		foreach ($summary_consumptions as $summary_consumption) {
 
@@ -91,47 +105,31 @@ class FuelPumpDispense extends RestController
 		}
 
 
-		$products = $productModel->get();
 		$product_summary_consumption = [];
 
-		$unit_cost = 0;
+		$data['product.id'] = $requestData['product_type'];
+		$previous_delivery_data = array(
+			'product' => $requestData['product_type'],
+			'date <=' => date('Y-m-d', strtotime($requestData['purchase_date']))
+		);
 
-		foreach ($products as $product) {
+		$previous_delivery = $deliveryModel->get_previous_delivery_data($previous_delivery_data, 1);
 
+		$unit_cost = $previous_delivery->price;
 
-			if (in_array(strtolower($product->product), ['diesel', 'premium', 'regular'])) {
-				$data['product.id'] = $product->id;
-				$previous_delivery_data = array(
-					'product' => $product->id,
-                    'date <=' => date('Y-m-d', strtotime($requestData['purchase_date']))
-				);
-
-				$previous_delivery = $deliveryModel->get_previous_delivery_data($previous_delivery_data, 1);
-				
-				$unit_cost = 	$previous_delivery->price ;
-				
-				$consumption = $tripTicketModel->get_product_summary_consumption($data);
-				$product_summary_consumption[] = array(
-					'product' => $consumption->product,
-					'unit_cost' => $unit_cost,
-					'total_purchase' => $consumption->total_purchase ? $consumption->total_purchase : number_format(0, 2, '.', ','),
-					// 'total_cost' => $consumption->total_purchase ? $consumption->total_purchase : number_format(0, 2, '.', ','),
-				);
-			}
-
-		}
+		$consumption = $tripTicketModel->get_product_summary_consumption($data);
+		$product_summary_consumption[] = array(
+			'product' => $consumption->product,
+			'unit_cost' => isset( $summary_consumption_data[0]['unit_cost']) ? $summary_consumption_data[0]['unit_cost'] : 0 ,
+			'total_purchase' => $consumption->total_purchase ? $consumption->total_purchase : number_format(0, 2, '.', ','),
+		);
 
 		$result = array(
 			'consumption' => $summary_consumption_data,
 			'summary' => $product_summary_consumption,
-
 		);
-
 		$this->response($result, RestController::HTTP_OK);
-
 	}
-
-
 
 	private function formatDriverName($firstName, $middleName, $lastName, $suffix)
 	{

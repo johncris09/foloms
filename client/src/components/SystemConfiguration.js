@@ -4,7 +4,7 @@ import { MagnifyingGlass, Oval, RotatingLines } from 'react-loader-spinner'
 import Swal from 'sweetalert2'
 import axios from 'axios'
 
-const isProduction = true
+const isProduction = false
 
 const api = axios.create({
   baseURL: isProduction
@@ -16,6 +16,8 @@ const api = axios.create({
     password: process.env.REACT_APP_API_PASSWORD,
   },
 })
+
+const currentYear = new Date().getFullYear()
 
 const officer = 'GAY C. MONDOY'
 const position = 'Supervising Manpower Development Officer'
@@ -374,4 +376,5 @@ export {
   officer,
   position,
   months,
+  currentYear,
 }

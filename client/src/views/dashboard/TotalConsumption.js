@@ -6,11 +6,22 @@ import 'intro.js/introjs.css'
 import { CCol, CRow } from '@coreui/react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGasPump, faPesoSign } from '@fortawesome/free-solid-svg-icons'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { api } from 'src/components/SystemConfiguration'
 
-const TotalConsumption = ({ totalConsumption }) => {
+const TotalConsumption = () => {
+  const totalConsumption = useQuery({
+    queryFn: async () =>
+      await api.get('product/total_consumption').then((response) => {
+        return response.data
+      }),
+    queryKey: ['totalConsumption'],
+    staleTime: Infinity,
+    refetchInterval: 1000,
+  })
   return (
     <>
-      <h6>Total Fuel Consumption</h6>
+      <h6>Total Consumption (L)</h6>
       <CRow>
         {totalConsumption?.isLoading
           ? [...Array(3)].map((_, index) => (

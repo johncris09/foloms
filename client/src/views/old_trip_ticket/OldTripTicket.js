@@ -2,11 +2,16 @@ import React, { useState, useRef } from 'react'
 import Swal from 'sweetalert2'
 import 'cropperjs/dist/cropper.css'
 import {
+  CAccordion,
+  CAccordionBody,
+  CAccordionHeader,
+  CAccordionItem,
   CButton,
   CCol,
   CForm,
   CFormInput,
   CFormLabel,
+  CFormSelect,
   CFormText,
   CFormTextarea,
   CModal,
@@ -52,6 +57,10 @@ const OldTripTicket = ({ cardTitle }) => {
     {
       accessorKey: 'product',
       header: 'Product',
+    },
+    {
+      accessorKey: 'unit_cost',
+      header: 'Unit Cost',
     },
     {
       accessorKey: 'plate_number',
@@ -442,6 +451,7 @@ const OldTripTicket = ({ cardTitle }) => {
       )
     }
     form.setFieldValue(name, value)
+    filterForm.setFieldValue(name, value)
   }
 
   const handleSelectChange = (selectedOption, ref) => {
@@ -469,10 +479,101 @@ const OldTripTicket = ({ cardTitle }) => {
     }
   }
 
+  const filterForm = useFormik({
+    initialValues: {
+      date: '',
+      product: '',
+    },
+    onSubmit: async (values) => {
+      await filterTripTicket.mutate(values)
+    },
+  })
+
+  const filterTripTicket = useMutation({
+    mutationFn: async (values) => {
+      return await api.get('old_trip_ticket/filter', { params: values })
+    },
+    onSuccess: async (response) => {
+      await queryClient.setQueryData(['oldTripTicket'], response.data)
+    },
+  })
+
   return (
     <>
       <ToastContainer />
       <PageTitle pageTitle={cardTitle} />
+
+      <CAccordion activeItemKey={1} className="mb-4">
+        <CAccordionItem itemKey={1}>
+          <CAccordionHeader>Filter</CAccordionHeader>
+          <CAccordionBody>
+            <CForm onSubmit={filterForm.handleSubmit}>
+              <CRow>
+                <CCol md={12}>
+                  <CFormInput
+                    type="date"
+                    label={'Date'}
+                    name="date"
+                    onChange={handleInputChange}
+                    value={filterForm.values.date}
+                    placeholder="Date"
+                    size="sm"
+                  />
+                  {filterForm.touched.date && filterForm.errors.date && (
+                    <CFormText className="text-danger">{filterForm.errors.date}</CFormText>
+                  )}
+                </CCol>
+                <CCol md={12}>
+                  <CFormLabel>
+                    {
+                      <>
+                        {oldTripTicketProduct.isLoading && <CSpinner size="sm" />}
+                        {'Product'}
+                      </>
+                    }
+                  </CFormLabel>
+                  <CFormSelect
+                    size="sm"
+                    name="product"
+                    value={filterForm.values.product}
+                    onChange={handleInputChange}
+                  >
+                    <option value="">Select</option>
+                    {!oldTripTicketProduct.isLoading &&
+                      oldTripTicketProduct?.data.map((item, index) => (
+                        <option key={index} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                  </CFormSelect>
+                </CCol>
+              </CRow>
+
+              <hr />
+              <CRow>
+                <CCol xs={12}>
+                  <CButton color="primary" type="submit" size="sm" className="float-end">
+                    Filter
+                  </CButton>
+                  <CButton
+                    onClick={() => {
+                      filterForm.resetForm()
+                      queryClient.invalidateQueries(['oldTripTicket'])
+                    }}
+                    color="danger"
+                    type="submit"
+                    size="sm"
+                    className="float-end me-2"
+                  >
+                    Clear
+                  </CButton>
+                </CCol>
+              </CRow>
+            </CForm>
+          </CAccordionBody>
+        </CAccordionItem>
+      </CAccordion>
+
       <MaterialReactTable
         columns={column}
         data={!oldTripTicket.isLoading && oldTripTicket.data}

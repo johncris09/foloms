@@ -143,10 +143,10 @@ const TransactionDetails = () => {
                   Diesel
                 </CTableHeaderCell>
                 <CTableHeaderCell className="text-center transaction-bg-green" colSpan={3}>
-                  Premium
+                  Regular
                 </CTableHeaderCell>
                 <CTableHeaderCell className="text-center  transaction-bg-yellow" colSpan={3}>
-                  Regular
+                  Premium
                 </CTableHeaderCell>
               </CTableRow>
               <CTableRow>

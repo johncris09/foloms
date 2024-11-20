@@ -2,11 +2,18 @@ import React, { useState, useRef } from 'react'
 import Swal from 'sweetalert2'
 import 'cropperjs/dist/cropper.css'
 import {
+  CAccordion,
+  CAccordionBody,
+  CAccordionHeader,
+  CAccordionItem,
   CButton,
+  CCard,
+  CCardBody,
   CCol,
   CForm,
   CFormInput,
   CFormLabel,
+  CFormSelect,
   CFormText,
   CFormTextarea,
   CModal,
@@ -481,6 +488,7 @@ const TripTicket = ({ cardTitle }) => {
       )
     }
     form.setFieldValue(name, value)
+    filterForm.setFieldValue(name, value)
   }
 
   const handleSelectChange = (selectedOption, ref) => {
@@ -525,24 +533,128 @@ const TripTicket = ({ cardTitle }) => {
     },
   })
 
+  const filterForm = useFormik({
+    initialValues: {
+      date: '',
+      product: '',
+    },
+    onSubmit: async (values) => {
+      await filterTripTicket.mutate(values)
+    },
+  })
+
+  const filterTripTicket = useMutation({
+    mutationFn: async (values) => {
+      return await api.get('trip_ticket/filter', { params: values })
+    },
+    onSuccess: async (response) => {
+      await queryClient.setQueryData(['tripTicket'], response.data)
+    },
+  })
+
   return (
     <>
       <ToastContainer />
       <PageTitle pageTitle={cardTitle} />
+      <CAccordion activeItemKey={1} className="mb-4">
+        <CAccordionItem itemKey={1}>
+          <CAccordionHeader>Filter</CAccordionHeader>
+          <CAccordionBody>
+            <CForm onSubmit={filterForm.handleSubmit}>
+              <CRow>
+                <CCol md={12}>
+                  <CFormInput
+                    type="date"
+                    label={'Date'}
+                    name="date"
+                    onChange={handleInputChange}
+                    value={filterForm.values.date}
+                    placeholder="Date"
+                    size="sm"
+                  />
+                  {filterForm.touched.date && filterForm.errors.date && (
+                    <CFormText className="text-danger">{filterForm.errors.date}</CFormText>
+                  )}
+                </CCol>
+                <CCol md={12}>
+                  <CFormLabel>
+                    {
+                      <>
+                        {tripTicketProduct.isLoading && <CSpinner size="sm" />}
+                        {'Product'}
+                      </>
+                    }
+                  </CFormLabel>
+                  <CFormSelect
+                    size="sm"
+                    name="product"
+                    value={filterForm.values.product}
+                    onChange={handleInputChange}
+                  >
+                    <option value="">Select</option>
+                    {!tripTicketProduct.isLoading &&
+                      tripTicketProduct?.data.map((item, index) => (
+                        <option key={index} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                  </CFormSelect>
+                </CCol>
+              </CRow>
+
+              <hr />
+              <CRow>
+                <CCol xs={12}>
+                  <CButton color="primary" type="submit" size="sm" className="float-end">
+                    Filter
+                  </CButton>
+                  <CButton
+                    onClick={() => {
+                      filterForm.resetForm()
+                      queryClient.invalidateQueries(['trip_ticket'])
+                    }}
+                    color="danger"
+                    type="submit"
+                    size="sm"
+                    className="float-end me-2"
+                  >
+                    Clear
+                  </CButton>
+                </CCol>
+              </CRow>
+            </CForm>
+          </CAccordionBody>
+        </CAccordionItem>
+      </CAccordion>
       <MaterialReactTable
         columns={column}
         data={!tripTicket.isLoading && tripTicket.data}
         state={{
           isLoading:
-            tripTicket.isLoading || insertTripTicket.isPending || updateTripTicket.isPending,
+            tripTicket.isLoading ||
+            insertTripTicket.isPending ||
+            updateTripTicket.isPending ||
+            filterTripTicket.isPending,
           isSaving:
-            tripTicket.isLoading || insertTripTicket.isPending || updateTripTicket.isPending,
+            tripTicket.isLoading ||
+            insertTripTicket.isPending ||
+            updateTripTicket.isPending ||
+            filterTripTicket.isPending,
           showLoadingOverlay:
-            tripTicket.isLoading || insertTripTicket.isPending || updateTripTicket.isPending,
+            tripTicket.isLoading ||
+            insertTripTicket.isPending ||
+            updateTripTicket.isPending ||
+            filterTripTicket.isPending,
           showProgressBars:
-            tripTicket.isLoading || insertTripTicket.isPending || updateTripTicket.isPending,
+            tripTicket.isLoading ||
+            insertTripTicket.isPending ||
+            updateTripTicket.isPending ||
+            filterTripTicket.isPending,
           showSkeletons:
-            tripTicket.isLoading || insertTripTicket.isPending || updateTripTicket.isPending,
+            tripTicket.isLoading ||
+            insertTripTicket.isPending ||
+            updateTripTicket.isPending ||
+            filterTripTicket.isPending,
         }}
         muiCircularProgressProps={{
           color: 'secondary',
@@ -611,7 +723,6 @@ const TripTicket = ({ cardTitle }) => {
                 color="warning"
                 onClick={() => {
                   let total = 0
-                  console.info(row.original)
                   if (row.original.gasoline_purchased > 0) {
                     total =
                       parseFloat(row.original.gasoline_balance_in_tank) +

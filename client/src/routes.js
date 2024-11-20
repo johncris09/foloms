@@ -13,9 +13,9 @@ const Delivery = React.lazy(() => import('./views/delivery/Delivery'))
 const Supplier = React.lazy(() => import('./views/supplier/Supplier'))
 const Product = React.lazy(() => import('./views/product/Product'))
 const User = React.lazy(() => import('./views/user/User'))
-const MonthlyReport = React.lazy(() => import('./views/report/MonthlyReport'))
+const MonthlyReport = React.lazy(() => import('./views/report/trip_ticket/MonthlyReport'))
 const Report = React.lazy(() => import('./views/report/Report'))
-const SummaryConsumption = React.lazy(() => import('./views/report/SummaryConsumption'))
+const SummaryConsumption = React.lazy(() => import('./views/report/trip_ticket/SummaryConsumption'))
 const ControlNumber = React.lazy(() => import('./views/control_number/ControlNumber'))
 
 const routes = [

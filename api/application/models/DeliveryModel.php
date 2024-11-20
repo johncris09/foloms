@@ -61,10 +61,10 @@ class DeliveryModel extends CI_Model
 		return $this->db->delete($this->table, ['id' => $id]);
 	}
 
-	public function get_previous_delivery_data($data)
+	public function get_previous_delivery_data($data, $limit = 1)
 	{
 
-		$query = $this->db->where($data, $limit = 1)
+		$query = $this->db->where($data)
 			->order_by('date', 'desc')
 			->limit($limit)
 			->get($this->table);

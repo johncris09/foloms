@@ -57,9 +57,6 @@ const AppBreadcrumb = () => {
   return (
     <>
       <CBreadcrumb className="m-0 ms-2">
-        <CBreadcrumbItem href={user.school !== null ? '/#' : '/#/dashboard'} replace>
-          Home
-        </CBreadcrumbItem>
         {breadcrumbs.map((breadcrumb, index) => {
           return (
             <CBreadcrumbItem

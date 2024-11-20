@@ -11,9 +11,9 @@ import TopDriverConsumption from './TopDriverConsumption'
 import TopEquipmentConsumption from './TopEquipmentConsumption'
 import OverallView from './OverallView'
 import TransactionDetails from './TransactionDetails'
-import RemaingBalancePercentage from './RemaingBalancePercentage'
 import TripTicketUserWork from './TripTicketUserWork'
 import OldTripTicketUserWork from './OldTripTicketUserWork'
+import RemainingBalancePercentage from './RemainingBalancePercentage'
 
 const Dashboard = ({ cardTitle }) => {
   const user = jwtDecode(localStorage.getItem('folomsToken'))
@@ -24,17 +24,15 @@ const Dashboard = ({ cardTitle }) => {
 
       <p>Welcome {user.first_name},</p>
 
-      <RemaingBalancePercentage />
-      {/* <RemaingBalance remainingBalance={remainingBalance} /> */}
+      <RemainingBalancePercentage />
+      {/* <RemaingBalance remainingBalance={remainingBalance} />
 
-      {/* <TotalDelivery totalDelivery={totalDelivery} /> */}
+      <TotalDelivery totalDelivery={totalDelivery} /> */}
       <TotalConsumption />
       <OverallView />
 
       <CRow className="my-3">
-        <CCol md={12}>
-          <TransactionDetails />
-        </CCol>
+        <CCol md={12}>{/* <TransactionDetails /> */}</CCol>
       </CRow>
 
       <CRow className="my-1">

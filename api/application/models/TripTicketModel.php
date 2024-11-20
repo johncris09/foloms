@@ -78,6 +78,73 @@ class TripTicketModel extends CI_Model
 		return $query->result();
 	}
 
+	public function filter($data)
+	{
+
+		$this->db
+			->select('
+				trip_ticket.id,
+				trip_ticket.control_number,
+				trip_ticket.purchase_date,
+				trip_ticket.driver,
+				trip_ticket.equipment,
+				trip_ticket.authorized_passengers,
+				trip_ticket.places_to_visit,
+				trip_ticket.purposes,
+				trip_ticket.departure_time,
+				trip_ticket.arrival_time_at_destination,
+				trip_ticket.departure_time_from_destination,
+				trip_ticket.arrival_time_back,
+				trip_ticket.approximate_distance_traveled,
+				trip_ticket.gasoline_balance_in_tank,
+				trip_ticket.gasoline_issued_by_office,
+				trip_ticket.gasoline_purchased,
+				trip_ticket.gasoline_used,
+				trip_ticket.gasoline_balance_end_trip,
+				trip_ticket.gear_oil_issued_purchased,
+				trip_ticket.lubricating_oil_issued_purchased,
+				trip_ticket.grease_issued_purchased,
+				trip_ticket.brake_fluid_issued_purchased,
+				trip_ticket.speedometer_start,
+				trip_ticket.speedometer_end,
+				trip_ticket.distance_traveled,
+				trip_ticket.remarks,
+				trip_ticket.encoded_at,
+				product.id as product_id,
+				product.product,
+				driver.id as driver_id,
+				driver.first_name as driver_first_name,
+				driver.last_name as driver_last_name,
+				driver.middle_name as driver_middle_name,
+				driver.suffix as driver_suffix,
+				equipment.id as equipment_id,
+				equipment.model,
+				equipment.plate_number,
+				equipment.fuel_capacity,
+				equipment.office,
+				equipment_type.times,
+				office.id office_id,
+				office.office,
+				office.abbr,
+				users.id user_id,
+				users.first_name user_first_name,
+				users.last_name user_last_name,
+				users.middle_name user_middle_name,
+				')
+			->from('trip_ticket')
+			->join('product', 'trip_ticket.product = product.id', 'LEFT')
+			->join('driver', 'trip_ticket.driver = driver.id', 'LEFT')
+			->join('equipment', 'trip_ticket.equipment = equipment.id', 'LEFT')
+			->join('equipment_type', 'equipment.equipment_type = equipment_type.id', 'LEFT')
+			->join('office', 'equipment.office = office.id', 'LEFT')
+			->join('users', 'trip_ticket.user_id = users.id', 'LEFT')
+			->where($data)
+			->order_by('trip_ticket.purchase_date', 'desc');
+
+
+		$query = $this->db->get();
+		return $query->result();
+	}
 
 	public function get_summary_consumption($data)
 	{

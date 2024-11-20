@@ -14,7 +14,7 @@ import {
   cilTruck,
   cilUser,
 } from '@coreui/icons'
-import { CNavGroup, CNavItem } from '@coreui/react'
+import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 import { faGasPump } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
@@ -84,6 +84,10 @@ const _nav = (userInfo) => {
         name: 'Report',
         to: '/report',
         icon: <CIcon icon={cilFolderOpen} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavTitle,
+        name: 'Utilities',
       },
       {
         component: CNavGroup,

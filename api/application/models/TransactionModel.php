@@ -343,12 +343,7 @@ class TransactionModel extends CI_Model
 				GROUP BY c.purchase_date,
 					c.product) AS a) t1';
 
-		// if(isset($data)){
-		// 	$query_string .= '  
-		// 	where month(date) = '.$data['month'].' and  year(date) = '.$data['year'].'   ';
-		// }
 		$query_string .= ' 
-		
 			GROUP BY DATE
 			ORDER BY DATE';
 		

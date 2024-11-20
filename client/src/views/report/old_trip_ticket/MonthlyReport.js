@@ -1,8 +1,8 @@
 import React, { useRef } from 'react'
 import Select from 'react-select'
 import { Page, Text, View, Document, StyleSheet, PDFViewer, Font, Image } from '@react-pdf/renderer'
-import monthlyReportTemplate1 from './../../assets/images/template/monthly_report 1.png'
-import monthlyReportTemplate2 from './../../assets/images/template/monthly_report 2.png'
+import monthlyReportTemplate1 from './../../../assets/images/template/monthly_report 1.png'
+import monthlyReportTemplate2 from './../../../assets/images/template/monthly_report 2.png'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFilter } from '@fortawesome/free-solid-svg-icons'
 import { useFormik } from 'formik'
@@ -34,14 +34,15 @@ const MonthlyReport = ({ cardTitle }) => {
   const monthlyReport = useMutation({
     mutationKey: ['monthlyReport'],
     mutationFn: async (values) => {
-      return await api.get('monthly_report/filter', { params: values })
+      return await api.get('old_trip_ticket/monthly_report_filter', { params: values })
     },
     onSuccess: async (response) => {
-      if (response.data.length) {
-        return response.data
-      } else {
-        toast.error('No Records Found!')
-      }
+      console.info(response.data)
+      // if (response.data.length) {
+      //   return response.data
+      // } else {
+      //   toast.error('No Records Found!')
+      // }
     },
     onError: (error) => {
       console.info(error.response.data)

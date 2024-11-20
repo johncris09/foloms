@@ -28,6 +28,24 @@ class TripTicket extends RestController
 		$this->response($result, RestController::HTTP_OK);
 	}
 
+	public function filter_get()
+	{
+		
+		$tripTicketModel = new TripTicketModel;
+		$requestData = $this->input->get();
+
+		$filter_data = [];
+		if( isset(	$requestData['date'] ) && !empty($requestData['date'])  ){
+			$filter_data['purchase_date'] = $requestData['date'];
+		}
+		if( isset(	$requestData['product'] ) && !empty($requestData['product'])  ){
+			$filter_data['product.id'] = $requestData['product'];
+		}
+
+		$result = $tripTicketModel->filter($filter_data);
+		$this->response($result, RestController::HTTP_OK);
+	}
+
 
 	public function product_consumption_trend_get()
 	{

@@ -1,8 +1,8 @@
 import React from 'react'
 import { CFooter } from '@coreui/react'
 import { AlternateEmailRounded } from '@mui/icons-material'
+import { currentYear } from './SystemConfiguration'
 const AppFooter = () => {
-  const currentYear = new Date().getFullYear()
   return (
     <CFooter>
       <div className="ms-auto">

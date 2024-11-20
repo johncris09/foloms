@@ -200,7 +200,6 @@ const Driver = ({ cardTitle }) => {
               <IconButton
                 color="warning"
                 onClick={() => {
-                  console.info(row.original)
                   form.setValues({
                     id: row.original.id,
                     type: row.original.type,

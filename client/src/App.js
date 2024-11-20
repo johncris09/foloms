@@ -3,7 +3,7 @@ import { HashRouter, Route, Routes } from 'react-router-dom'
 import './scss/style.scss'
 import 'react-toastify/dist/ReactToastify.css'
 import Test from './test/Test'
-import 'https://cdn.lordicon.com/lordicon.js'
+// import 'https://cdn.lordicon.com/lordicon.js'
 
 const loading = (
   <div className="pt-3 text-center">
@@ -25,7 +25,6 @@ class App extends Component {
       <HashRouter>
         <Suspense fallback={loading}>
           <Routes>
-            <Route exact path="/test" name="Test Page" element={<Test />} />
             <Route exact path="/login" name="Login Page" element={<Login />} />
             {/* <Route exact path="/register" name="Register Page" element={<Register />} /> */}
             <Route exact path="/404" name="Page 404" element={<Page404 />} />

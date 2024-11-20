@@ -21,7 +21,6 @@ const ReportType = ({ cardTitle }) => {
   const reportType = useQuery({
     queryFn: async () =>
       await api.get('report_type').then((response) => {
-        console.info(response.data)
         return response.data
       }),
     queryKey: ['reportType'],

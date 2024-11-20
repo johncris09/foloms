@@ -16,6 +16,8 @@ class User extends RestController
 		parent::__construct();
 		$this->objOfJwt = new CreatorJwt();
 		$this->load->model('UserModel');
+		$this->load->model('TripTicketModel');
+
 
 	}
 
@@ -222,7 +224,4 @@ class User extends RestController
 
 		}
 	}
-
-
-
 }
