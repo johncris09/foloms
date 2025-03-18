@@ -2,13 +2,17 @@ import React from 'react'
 import CIcon from '@coreui/icons-react'
 import {
   cibLetterboxd,
+  cilBadge,
+  cilBuilding,
   cilChildFriendly,
   cilClipboard,
   cilCog,
   cilFile,
   cilFolderOpen,
   cilInbox,
+  cilIndustry,
   cilInstitution,
+  cilLibraryBuilding,
   cilPeople,
   cilSpeedometer,
   cilTruck,
@@ -52,6 +56,16 @@ const _nav = (userInfo) => {
         to: '/equipment',
         icon: <CIcon icon={cilChildFriendly} customClassName="nav-icon" />,
       },
+      // {
+      //   component: CNavItem,
+      //   name: 'Funds',
+      //   to: '/funds',
+      //   badge: {
+      //     color: 'info',
+      //     text: 'NEW',
+      //   },
+      //   icon: <CIcon icon={cilInstitution} customClassName="nav-icon" />,
+      // },
       {
         component: CNavItem,
         name: 'Delivery',
@@ -85,6 +99,7 @@ const _nav = (userInfo) => {
         to: '/report',
         icon: <CIcon icon={cilFolderOpen} customClassName="nav-icon" />,
       },
+
       {
         component: CNavTitle,
         name: 'Utilities',

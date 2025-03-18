@@ -1,6 +1,10 @@
 import React, { Component, Suspense } from 'react'
+
+import '@mantine/core/styles.layer.css'
+import 'mantine-datatable/styles.layer.css'
 import { HashRouter, Route, Routes } from 'react-router-dom'
 import './scss/style.scss'
+import './scss/layout.css'
 import 'react-toastify/dist/ReactToastify.css'
 import Test from './test/Test'
 // import 'https://cdn.lordicon.com/lordicon.js'
