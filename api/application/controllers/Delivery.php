@@ -103,7 +103,7 @@ class Delivery extends RestController
 			'supplier' => $requestData['supplier'],
 			'product' => $requestData['product'],
 			'price' => $requestData['price'],
- 
+
 		);
 
 
@@ -184,28 +184,54 @@ class Delivery extends RestController
 	}
 
 	public function get_previous_next_delivery_get()
-	{	
+	{
 
 		$deliveryModel = new DeliveryModel;
 		$requestData = $this->input->get();
 
-		
+
 		$result = $deliveryModel->get_previous_next_delivery($requestData);
-		$this->response($result, RestController::HTTP_OK);
+
+		$data = array();
+
+		if (isset($result[1])) {
+			if (isset($result[1]->price) == null) {
+
+				$date = new DateTime($result[1]->date);
+				$date->modify('+1 year'); 
+				$delivery_next = array(
+					'type' => $result[1]->type,
+					'price' => $result[1]->price,
+					'date' => $date->format('Y-m-d'),
+				);
+
+
+			}else{
+				$delivery_next = array(
+					'type' => $result[1]->type,
+					'price' => $result[1]->price,
+					'date' => $result[1]->date, 
+				);
+			} 
+		}
+
+		$data[] = $result[0];
+		$data[] = $delivery_next;
+		$this->response($data, RestController::HTTP_OK);
 
 	}
 
 	public function update_trip_ticket_unit_cost_by_previous_next_delivery_put()
 	{
 		$tripTicketModel = new TripTicketModel;
-		
-		$requestData = json_decode($this->input->raw_input_stream, true);
-	
-		
-		
-		$result = $tripTicketModel->update_trip_ticket_unit_cost_by_previous_next_delivery( $requestData);
 
-		if ($result ) {
+		$requestData = json_decode($this->input->raw_input_stream, true);
+
+
+
+		$result = $tripTicketModel->update_trip_ticket_unit_cost_by_previous_next_delivery($requestData);
+
+		if ($result) {
 			$this->response([
 				'status' => true,
 				'message' => 'Successfully Updated.'
