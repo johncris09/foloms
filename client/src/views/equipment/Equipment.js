@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react'
+import { ExportToCsv } from 'export-to-csv'
 import Swal from 'sweetalert2'
 import 'cropperjs/dist/cropper.css'
 import {
@@ -18,7 +19,7 @@ import {
 } from '@coreui/react'
 import MaterialReactTable from 'material-react-table'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus } from '@fortawesome/free-solid-svg-icons'
+import { faFileExcel, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useFormik } from 'formik'
 import Select from 'react-select'
 import { ToastContainer, toast } from 'react-toastify'
@@ -52,7 +53,7 @@ const Driver = ({ cardTitle }) => {
     },
     {
       accessorKey: 'fuel_capacity',
-      header: ' Fuel Capacity (L)',
+      header: 'Fuel Capacity (L)',
     },
     {
       accessorKey: 'abbr',
@@ -208,6 +209,55 @@ const Driver = ({ cardTitle }) => {
   const handleSelectChange = (selectedOption, ref) => {
     form.setFieldValue(ref.name, selectedOption ? selectedOption.value : '')
   }
+  const csvOptions = {
+    fieldSeparator: ',',
+    quoteStrings: '"',
+    decimalSeparator: '.',
+    showLabels: true,
+    useBom: true,
+    useKeysAsHeaders: false,
+    headers: column.map((c) => c.header),
+  }
+
+  const csvExporter = new ExportToCsv(csvOptions)
+
+  const handleExportData = () => {
+    const exportedData =
+      !equipment.isLoading &&
+      equipment.data.map((item) => {
+        return {
+          Model: item.model,
+          'Plate #': item.plate_number,
+          'Fuel Capacity (L)': item.fuel_capacity,
+          Office: item.abbr,
+          Type: item.type,
+          Times: item.times,
+          'Balance in Tank': item.tank_balance,
+          'Include Description': item.include_description == 1 ? 'Yes' : 'No',
+          'Report Type': item.report_type,
+        }
+      })
+    csvExporter.generateCsv(exportedData)
+  }
+  const handleExportRows = (rows) => {
+    const exportedData = rows
+      .map((row) => row.original)
+      .map((item) => {
+        return {
+          Model: item.model,
+          'Plate #': item.plate_number,
+          'Fuel Capacity (L)': item.fuel_capacity,
+          Office: item.abbr,
+          Type: item.type,
+          Times: item.times,
+          'Balance in Tank': item.tank_balance,
+          'Include Description': item.include_description == 1 ? 'Yes' : 'No',
+          'Report Type': item.report_type,
+        }
+      })
+
+    csvExporter.generateCsv(exportedData)
+  }
   return (
     <>
       <ToastContainer />
@@ -235,6 +285,8 @@ const Driver = ({ cardTitle }) => {
           animation: 'pulse',
           height: 28,
         }}
+        enableRowSelection
+        enableSelectAll={true}
         enableGrouping
         columnFilterDisplayMode="popover"
         paginationDisplayMode="pages"
@@ -271,6 +323,18 @@ const Driver = ({ cardTitle }) => {
             >
               <FontAwesomeIcon icon={faPlus} />
             </Button>
+            <CButton className="btn-info text-white" onClick={handleExportData} size="sm">
+              <FontAwesomeIcon icon={faFileExcel} /> Export All
+            </CButton>
+
+            <CButton
+              disabled={!table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()}
+              size="sm"
+              onClick={() => handleExportRows(table.getSelectedRowModel().rows)}
+              variant="outline"
+            >
+              <FontAwesomeIcon icon={faFileExcel} /> Export Selected Rows
+            </CButton>
           </Box>
         )}
         renderRowActions={({ row, table }) => (
