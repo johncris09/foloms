@@ -19,8 +19,8 @@ const api = axios.create({
 
 const currentYear = new Date().getFullYear()
 
-const officer = 'GAY C. MONDOY'
-const position = 'Supervising Manpower Development Officer'
+const officer = 'WELITA C. LARA'
+const position = 'Supervising Administrative Officer'
 
 const asterisk = () => {
   return <span className="text-danger">*</span>
