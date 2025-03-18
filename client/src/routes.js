@@ -17,6 +17,7 @@ const MonthlyReport = React.lazy(() => import('./views/report/trip_ticket/Monthl
 const Report = React.lazy(() => import('./views/report/Report'))
 const SummaryConsumption = React.lazy(() => import('./views/report/trip_ticket/SummaryConsumption'))
 const ControlNumber = React.lazy(() => import('./views/control_number/ControlNumber'))
+const Funds = React.lazy(() => import('./views/funds/Funds'))
 
 const routes = [
   {
@@ -67,6 +68,13 @@ const routes = [
     exact: true,
     name: 'Equipment',
     element: Equipment,
+  },
+  {
+    path: '/funds',
+    user: ['Super Admin'],
+    exact: true,
+    name: 'Funds',
+    element: Funds,
   },
   {
     path: '/driver',
