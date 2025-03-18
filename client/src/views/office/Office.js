@@ -19,7 +19,15 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useFormik } from 'formik'
 import { ToastContainer, toast } from 'react-toastify'
 import { Box, Button, IconButton, Tooltip } from '@mui/material'
-import { DeleteOutline, EditSharp } from '@mui/icons-material'
+import { useNavigate } from 'react-router-dom'
+import {
+  Add,
+  AddCircle,
+  AddIcCallTwoTone,
+  DeleteOutline,
+  EditSharp,
+  PlusOne,
+} from '@mui/icons-material'
 import {
   DefaultLoading,
   RequiredFieldNote,
@@ -32,8 +40,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import PageTitle from 'src/components/PageTitle'
 
 const Office = ({ cardTitle }) => {
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [modalVisible, setModalVisible] = useState(false)
+  const [modalFundsVisible, setModalFundsVisible] = useState(false)
+  const [modalFundsHeaderTitle, setModalFundsHeaderTitle] = useState('')
+
   const column = [
     {
       accessorKey: 'abbr',
@@ -72,6 +84,27 @@ const Office = ({ cardTitle }) => {
       } else {
         await insertOffice.mutate(values)
       }
+    },
+  })
+
+  const fundsFormValidationSchema = Yup.object().shape({
+    amount: Yup.string().required('Amount is required'),
+    date: Yup.string().required('Date is required'),
+  })
+  const fundsForm = useFormik({
+    initialValues: {
+      id: '',
+      amount: '',
+      office: '',
+      date: '',
+    },
+    validationSchema: fundsFormValidationSchema,
+    onSubmit: async (values) => {
+        if (values.id) {
+          await updateOffice.mutate(values)
+        } else {
+          await insertOffice.mutate(values)
+        }
     },
   })
 
@@ -228,6 +261,18 @@ const Office = ({ cardTitle }) => {
                 <DeleteOutline />
               </IconButton>
             </Tooltip>
+            <Tooltip title="Add Funds">
+              <IconButton
+                color="secondary"
+                onClick={() => {
+                  setModalFundsHeaderTitle('for ' + row.original.abbr)
+                  setModalFundsVisible(true)
+                  // navigate('/office/funds/' + row.original.id)
+                }}
+              >
+                <AddCircle />
+              </IconButton>
+            </Tooltip>
           </Box>
         )}
       />
@@ -283,6 +328,119 @@ const Office = ({ cardTitle }) => {
                 <CButton color="primary" type="submit" className="float-end">
                   {form.values.id ? 'Update' : 'Submit'}
                 </CButton>
+              </CCol>
+            </CRow>
+          </CForm>
+          {(insertOffice.isPending || updateOffice.isPending) && <DefaultLoading />}
+        </CModalBody>
+      </CModal>
+      <CModal
+        alignment="center"
+        visible={modalFundsVisible}
+        onClose={() => setModalFundsVisible(false)}
+        backdrop="static"
+        keyboard={false}
+        size="xl"
+      >
+        <CModalHeader>
+          <CModalTitle>Add Funds {modalFundsHeaderTitle}</CModalTitle>
+        </CModalHeader>
+        <CModalBody>
+          <RequiredFieldNote />
+          <CForm className="row g-3   mt-4" onSubmit={fundsForm.handleSubmit}>
+            <CRow>
+              <CCol md={4}>
+                <CRow>
+                  <CCol md={12}>
+                    <CFormInput
+                      type="number"
+                      label={requiredField('Amount')}
+                      name="amount"
+                      onChange={handleInputChange}
+                      value={fundsForm.values.amount}
+                      placeholder="0.00"
+                      invalid={fundsForm.touched.amount && fundsForm.errors.amount}
+                    />
+                    {fundsForm.touched.amount && fundsForm.errors.amount && (
+                      <CFormText className="text-danger">{fundsForm.errors.amount}</CFormText>
+                    )}
+                  </CCol>
+
+                  <CCol md={12}>
+                    <CFormInput
+                      type="date"
+                      label={requiredField('Date')}
+                      name="date"
+                      onChange={handleInputChange}
+                      value={fundsForm.values.date}
+                      placeholder="Date"
+                      invalid={fundsForm.touched.date && fundsForm.errors.date}
+                    />
+                    {fundsForm.touched.date && fundsForm.errors.date && (
+                      <CFormText className="text-danger">{fundsForm.errors.date}</CFormText>
+                    )}
+                  </CCol>
+
+                  <CCol md={12} className="mt-2">
+                    <CButton color="primary" type="submit" className="float-end">
+                      Submit
+                    </CButton>
+                  </CCol>
+                </CRow>
+              </CCol>
+              <CCol md={8}>
+                <MaterialReactTable
+                  columns={column}
+                  data={!office.isLoading && office.data}
+                  state={{
+                    isLoading: office.isLoading || insertOffice.isPending || updateOffice.isPending,
+                    isSaving: office.isLoading || insertOffice.isPending || updateOffice.isPending,
+                    showLoadingOverlay:
+                      office.isLoading || insertOffice.isPending || updateOffice.isPending,
+                    showProgressBars:
+                      office.isLoading || insertOffice.isPending || updateOffice.isPending,
+                    showSkeletons:
+                      office.isLoading || insertOffice.isPending || updateOffice.isPending,
+                  }}
+                  muiCircularProgressProps={{
+                    color: 'secondary',
+                    thickness: 5,
+                    size: 55,
+                  }}
+                  muiSkeletonProps={{
+                    animation: 'pulse',
+                    height: 28,
+                  }}
+                  columnFilterDisplayMode="popover"
+                  paginationDisplayMode="pages"
+                  positionToolbarAlertBanner="bottom"
+                  enableStickyHeader
+                  enableStickyFooter
+                  enableRowActions
+                  initialState={{
+                    density: 'compact',
+                    columnPinning: { left: ['mrt-row-actions'] },
+                  }}
+                  renderRowActions={({ row, table }) => (
+                    <Box sx={{ display: 'flex', flexWrap: 'nowrap' }}>
+                      <Tooltip title="Edit">
+                        <IconButton
+                          color="warning"
+                          onClick={() => {
+                            form.setValues({
+                              id: row.original.id,
+                              abbr: row.original.abbr,
+                              office: row.original.office,
+                            })
+                            setModalVisible(true)
+                          }}
+                        >
+                          <EditSharp />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  )}
+                />
               </CCol>
             </CRow>
           </CForm>
