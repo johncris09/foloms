@@ -256,6 +256,18 @@ class TripTicket extends RestController
 
 		$requestData = json_decode($this->input->raw_input_stream, true);
 
+		$issued_by_office = isset($requestData['gasoline_issued_by_office']) ? floatval($requestData['gasoline_issued_by_office']) : 0;
+		$external_purchase = isset($requestData['gasoline_purchased']) ? floatval($requestData['gasoline_purchased']) : 0;
+
+		// Depo is required only when fuel is externally purchased.
+		if ($external_purchase > 0 && $issued_by_office <= 0 && empty($requestData['depo_id'])) {
+			$this->response([
+				'status' => false,
+				'message' => 'Depo is required when fuel subsidy is not provided by the organization.'
+			], RestController::HTTP_BAD_REQUEST);
+			return;
+		}
+
 
 
 		// get the last control number
@@ -290,6 +302,7 @@ class TripTicket extends RestController
 			'speedometer_end' => $requestData['speedometer_end'],
 			'distance_traveled' => $requestData['distance_traveled'],
 			'remarks' => $requestData['remarks'],
+			'depo_id' => ($external_purchase > 0 && $issued_by_office <= 0 && !empty($requestData['depo_id'])) ? $requestData['depo_id'] : null,
 			'user_id' => $requestData['user_id'],
 			'control_number' => $control_number->control_number,
 		);
@@ -328,6 +341,17 @@ class TripTicket extends RestController
 		$tripTicketModel = new TripTicketModel;
 
 		$requestData = json_decode($this->input->raw_input_stream, true);
+
+		$issued_by_office = isset($requestData['gasoline_issued_by_office']) ? floatval($requestData['gasoline_issued_by_office']) : 0;
+		$external_purchase = isset($requestData['gasoline_purchased']) ? floatval($requestData['gasoline_purchased']) : 0;
+
+		if ($external_purchase > 0 && $issued_by_office <= 0 && empty($requestData['depo_id'])) {
+			$this->response([
+				'status' => false,
+				'message' => 'Depo is required when fuel subsidy is not provided by the organization.'
+			], RestController::HTTP_BAD_REQUEST);
+			return;
+		}
 
 		if (isset($requestData['purchase_date'])) {
 			$data['purchase_date'] = $requestData['purchase_date'];
@@ -406,6 +430,8 @@ class TripTicket extends RestController
 		if (isset($requestData['remarks'])) {
 			$data['remarks'] = $requestData['remarks'];
 		}
+
+		$data['depo_id'] = ($external_purchase > 0 && $issued_by_office <= 0 && !empty($requestData['depo_id'])) ? $requestData['depo_id'] : null;
 
 
 		$update_result = $tripTicketModel->update($id, $data);

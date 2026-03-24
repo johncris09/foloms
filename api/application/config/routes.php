@@ -45,6 +45,13 @@ $route['supplier/top_consumption'] = 'Supplier/top_consumption';
 $route['supplier/update/(:any)'] = 'Supplier/update/$1';
 $route['supplier/delete/(:any)'] = 'Supplier/delete/$1';
 
+// Depo
+$route['depo'] = 'Depo';
+$route['depo/insert'] = 'Depo/insert';
+$route['depo/find/(:any)'] = 'Depo/find/$1';
+$route['depo/update/(:any)'] = 'Depo/update/$1';
+$route['depo/delete/(:any)'] = 'Depo/delete/$1';
+
 // Transaction
 $route['transaction'] = 'Transaction';
 $route['transaction/remaining_balance'] = 'Transaction/remaining_balance';

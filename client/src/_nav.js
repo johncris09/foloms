@@ -80,6 +80,14 @@ const _nav = (userInfo) => {
 
         icon: <CIcon icon={cilClipboard} customClassName="nav-icon" />,
       },
+
+      {
+        component: CNavItem,
+        name: 'Depo',
+        to: '/depo',
+
+        icon: <CIcon icon={cilClipboard} customClassName="nav-icon" />,
+      },
       {
         component: CNavItem,
         name: 'Supplier',
@@ -200,6 +208,11 @@ const _nav = (userInfo) => {
             component: CNavItem,
             name: 'Product',
             to: '/product',
+          },
+          {
+            component: CNavItem,
+            name: 'Depo',
+            to: '/depo',
           },
 
           {

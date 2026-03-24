@@ -53,10 +53,12 @@ import PageTitle from 'src/components/PageTitle'
 const TripTicket = ({ cardTitle }) => {
   const queryClient = useQueryClient()
   const [modalVisible, setModalVisible] = useState(false)
+  const [modalDepoVisible, setModalDepoVisible] = useState(false)
   const tripTicketProductInputRef = useRef()
   const tripTicketRemarksInputRef = useRef()
   const tripTicketDriverInputRef = useRef()
   const tripTicketEquipmentInputRef = useRef()
+  const tripTicketDepoInputRef = useRef()
   const user = jwtDecode(localStorage.getItem('folomsToken'))
   const column = [
     {
@@ -209,6 +211,11 @@ const TripTicket = ({ cardTitle }) => {
       header: 'Remarks',
     },
     {
+      accessorKey: 'depo_name',
+      header: 'Depo',
+      accessorFn: (row) => row.depo_name || '-',
+    },
+    {
       accessorKey: 'encoded_at',
       header: 'Encoded at',
     },
@@ -300,6 +307,21 @@ const TripTicket = ({ cardTitle }) => {
     refetchInterval: 1000,
   })
 
+  const tripTicketDepo = useQuery({
+    queryFn: async () =>
+      await api.get('depo').then((response) => {
+        const formattedData = response.data.map((item) => {
+          const value = item.id
+          const label = item.location ? `${item.name} - ${item.location}` : `${item.name}`
+          return { value, label, name: item.name, location: item.location }
+        })
+        return formattedData
+      }),
+    queryKey: ['tripTicketDepo'],
+    staleTime: Infinity,
+    refetchInterval: 1000,
+  })
+
   const tripTicket = useQuery({
     queryFn: async () =>
       await api.get('trip_ticket').then((response) => {
@@ -327,6 +349,7 @@ const TripTicket = ({ cardTitle }) => {
 
       gasoline_purchased: Yup.string(),
       gasoline_issued_by_office: Yup.string(),
+      depo_id: Yup.string(),
       total: Yup.number()
         .typeError('Total must be a number')
         .notOneOf([0], 'Total must not be zero')
@@ -359,9 +382,54 @@ const TripTicket = ({ cardTitle }) => {
             message: 'Only one of Issued By Office or Add Purchase should be filled',
           })
         }
+        if (parseFloat(gasoline_purchased || 0) > 0 && !value.depo_id) {
+          return this.createError({
+            path: 'depo_id',
+            message: 'Depo is required when Add Purchase is used',
+          })
+        }
         return true
       },
     )
+
+  const quickDepoForm = useFormik({
+    initialValues: {
+      name: '',
+      location: '',
+    },
+    validationSchema: Yup.object().shape({
+      name: Yup.string().required('Depo name is required'),
+      location: Yup.string(),
+    }),
+    onSubmit: async (values) => {
+      await insertDepoQuick.mutate(values)
+    },
+  })
+
+  const insertDepoQuick = useMutation({
+    mutationFn: async (values) => {
+      return await api.post('depo/insert', values)
+    },
+    onSuccess: async (response) => {
+      if (response.data.status) {
+        toast.success(response.data.message)
+      }
+      const previousName = quickDepoForm.values.name
+      await queryClient.invalidateQueries(['tripTicketDepo'])
+      setModalDepoVisible(false)
+      quickDepoForm.resetForm()
+
+      const latestDepos = await api.get('depo')
+      const createdDepo = latestDepos.data.find((item) => item.name === previousName)
+      if (createdDepo) {
+        form.setFieldValue('depo_id', createdDepo.id)
+      }
+    },
+    onError: () => {
+      toast.error('Failed to add depo')
+    },
+  })
+
   const form = useFormik({
     initialValues: {
       id: '',
@@ -393,6 +461,7 @@ const TripTicket = ({ cardTitle }) => {
       speedometer_end: '',
       distance_traveled: '',
       remarks: 'Distance travel is only an estimate',
+      depo_id: '',
       times: '',
       job_description: '',
       user_id: '',
@@ -407,6 +476,8 @@ const TripTicket = ({ cardTitle }) => {
       }
     },
   })
+
+  const isExternalFuelSubsidy = parseFloat(form.values.gasoline_purchased || 0) > 0
 
   const insertTripTicket = useMutation({
     mutationFn: async (values) => {
@@ -424,6 +495,9 @@ const TripTicket = ({ cardTitle }) => {
       tripTicketProductInputRef.current.clearValue()
       tripTicketDriverInputRef.current.clearValue()
       tripTicketEquipmentInputRef.current.clearValue()
+      if (tripTicketDepoInputRef.current) {
+        tripTicketDepoInputRef.current.clearValue()
+      }
       await queryClient.invalidateQueries(['tripTicket'])
     },
     onError: (error) => {
@@ -468,6 +542,10 @@ const TripTicket = ({ cardTitle }) => {
           parseFloat(form.values.gasoline_balance_in_tank) -
           (!value.trim() ? 0 : value),
       )
+
+      if (parseFloat(value || 0) > 0) {
+        form.setFieldValue('depo_id', '')
+      }
     }
 
     if (name === 'gasoline_purchased') {
@@ -516,6 +594,9 @@ const TripTicket = ({ cardTitle }) => {
         )
       }
       form.setFieldValue('equipment', selectedOption ? selectedOption.value : '')
+    }
+    if (ref.name === 'depo_id') {
+      form.setFieldValue('depo_id', selectedOption ? selectedOption.value : '')
     }
   }
 
@@ -770,6 +851,7 @@ const TripTicket = ({ cardTitle }) => {
                     speedometer_end: row.original.speedometer_end,
                     distance_traveled: row.original.distance_traveled,
                     remarks: row.original.remarks,
+                    depo_id: row.original.depo_id || '',
                     times: row.original.times,
                   })
 
@@ -818,6 +900,57 @@ const TripTicket = ({ cardTitle }) => {
           </Box>
         )}
       />
+
+      <CModal
+        alignment="center"
+        visible={modalDepoVisible}
+        onClose={() => setModalDepoVisible(false)}
+        backdrop="static"
+        keyboard={false}
+        size="md"
+      >
+        <CModalHeader>
+          <CModalTitle>Add New Depo</CModalTitle>
+        </CModalHeader>
+        <CModalBody>
+          <CForm onSubmit={quickDepoForm.handleSubmit}>
+            <CRow>
+              <CCol md={12}>
+                <CFormInput
+                  type="text"
+                  label={requiredField('Depo Name')}
+                  name="name"
+                  value={quickDepoForm.values.name}
+                  onChange={quickDepoForm.handleChange}
+                  placeholder="Depo Name"
+                />
+                {quickDepoForm.touched.name && quickDepoForm.errors.name && (
+                  <CFormText className="text-danger">{quickDepoForm.errors.name}</CFormText>
+                )}
+              </CCol>
+              <CCol md={12} className="mt-3">
+                <CFormInput
+                  type="text"
+                  label="Location (optional)"
+                  name="location"
+                  value={quickDepoForm.values.location}
+                  onChange={quickDepoForm.handleChange}
+                  placeholder="Location"
+                />
+              </CCol>
+            </CRow>
+            <hr />
+            <CRow>
+              <CCol xs={12}>
+                <CButton color="primary" type="submit" className="float-end">
+                  Save Depo
+                </CButton>
+              </CCol>
+            </CRow>
+          </CForm>
+          {insertDepoQuick.isPending && <DefaultLoading />}
+        </CModalBody>
+      </CModal>
 
       <CModal
         alignment="center"
@@ -1381,6 +1514,59 @@ const TripTicket = ({ cardTitle }) => {
                           {form.values.remarks}
                         </CFormTextarea>
                       </CCol>
+                      {isExternalFuelSubsidy ? (
+                        <CCol md={12} className="mt-3">
+                          <CRow>
+                            <CCol md={8}>
+                              <CFormLabel>
+                                {
+                                  <>
+                                    {tripTicketDepo.isLoading && <CSpinner size="sm" />}
+                                    {requiredField('Depo')}
+                                  </>
+                                }
+                              </CFormLabel>
+                            </CCol>
+                            <CCol md={4} className="text-end">
+                              <CButton
+                                color="secondary"
+                                size="sm"
+                                type="button"
+                                onClick={() => setModalDepoVisible(true)}
+                              >
+                                + Add Depo
+                              </CButton>
+                            </CCol>
+                          </CRow>
+                          <Select
+                            ref={tripTicketDepoInputRef}
+                            value={
+                              !tripTicketDepo.isLoading &&
+                              tripTicketDepo.data?.find(
+                                (option) => option.value === form.values.depo_id,
+                              )
+                            }
+                            onChange={handleSelectChange}
+                            options={!tripTicketDepo.isLoading && tripTicketDepo.data}
+                            name="depo_id"
+                            isSearchable
+                            placeholder="Select depo"
+                            isClearable
+                          />
+                          {form.touched.depo_id && form.errors.depo_id && (
+                            <CFormText className="text-danger">{form.errors.depo_id}</CFormText>
+                          )}
+                        </CCol>
+                      ) : (
+                        <CCol md={12} className="mt-3">
+                          <CFormInput
+                            type="text"
+                            value="Fuel subsidy provided by office (Depo not required)"
+                            size="sm"
+                            disabled
+                          />
+                        </CCol>
+                      )}
                     </CRow>
                   </CCol>
                 </CRow>

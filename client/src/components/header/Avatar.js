@@ -2,7 +2,7 @@ import { CAvatar } from '@coreui/react'
 import React, { useState, useEffect } from 'react'
 import { api } from '../SystemConfiguration'
 
-const isProduction = true
+const isProduction = false
 const Avatar = ({ userId }) => {
   const [photo, setPhoto] = useState('')
   useEffect(() => {

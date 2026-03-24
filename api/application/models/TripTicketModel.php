@@ -42,6 +42,7 @@ class TripTicketModel extends CI_Model
 				trip_ticket.speedometer_end,
 				trip_ticket.distance_traveled,
 				trip_ticket.remarks,
+				trip_ticket.depo_id,
 				trip_ticket.encoded_at,
 				product.id as product_id,
 				product.product,
@@ -59,6 +60,8 @@ class TripTicketModel extends CI_Model
 				office.id office_id,
 				office.office,
 				office.abbr,
+				depos.name as depo_name,
+				depos.location as depo_location,
 				users.id user_id,
 				users.first_name user_first_name,
 				users.last_name user_last_name,
@@ -70,6 +73,7 @@ class TripTicketModel extends CI_Model
 			->join('equipment', 'trip_ticket.equipment = equipment.id', 'LEFT')
 			->join('equipment_type', 'equipment.equipment_type = equipment_type.id', 'LEFT')
 			->join('office', 'equipment.office = office.id', 'LEFT')
+			->join('depos', 'trip_ticket.depo_id = depos.id', 'LEFT')
 			->join('users', 'trip_ticket.user_id = users.id', 'LEFT')
 			->order_by('trip_ticket.purchase_date', 'desc');
 
@@ -109,6 +113,7 @@ class TripTicketModel extends CI_Model
 				trip_ticket.speedometer_end,
 				trip_ticket.distance_traveled,
 				trip_ticket.remarks,
+				trip_ticket.depo_id,
 				trip_ticket.encoded_at,
 				product.id as product_id,
 				product.product,
@@ -126,6 +131,8 @@ class TripTicketModel extends CI_Model
 				office.id office_id,
 				office.office,
 				office.abbr,
+				depos.name as depo_name,
+				depos.location as depo_location,
 				users.id user_id,
 				users.first_name user_first_name,
 				users.last_name user_last_name,
@@ -137,6 +144,7 @@ class TripTicketModel extends CI_Model
 			->join('equipment', 'trip_ticket.equipment = equipment.id', 'LEFT')
 			->join('equipment_type', 'equipment.equipment_type = equipment_type.id', 'LEFT')
 			->join('office', 'equipment.office = office.id', 'LEFT')
+			->join('depos', 'trip_ticket.depo_id = depos.id', 'LEFT')
 			->join('users', 'trip_ticket.user_id = users.id', 'LEFT')
 			->where($data)
 			->order_by('trip_ticket.purchase_date', 'desc');

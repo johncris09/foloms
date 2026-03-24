@@ -4,7 +4,7 @@ import { MagnifyingGlass, Oval, RotatingLines } from 'react-loader-spinner'
 import Swal from 'sweetalert2'
 import axios from 'axios'
 
-const isProduction = true
+const isProduction = false
 
 const api = axios.create({
   baseURL: isProduction
