@@ -1,0 +1,6 @@
+client/node_modules/
+client/mennu.txt
+client/package-lock.json
+api/application/config/database.php
+api/application (obfuscator)/
+api/system/

@@ -26,24 +26,24 @@ class Equipment extends RestController
 		$result = $equipmentModel->get();
 		$this->response($result, RestController::HTTP_OK);
 	}
-	
+
 	public function top_consumption_get()
 	{
-		
+
 		$productModel = new ProductModel;
 		$tripTicketModel = new TripTicketModel;
 
-		
+
 		$requestData = $this->input->get();
-		
+
 		$data = [];
 		$categories = [];
 		$seriesData = [];
 		$whereData = [];
 		$top = 10;
 
-		
-		
+
+
 		if (isset($requestData['top']) && !empty($requestData['top'])) {
 			$top = $requestData['top'];
 		}
@@ -57,7 +57,7 @@ class Equipment extends RestController
 		}
 
 
-		
+
 		$equipments = $tripTicketModel->get_top_equipment($whereData, $top);
 
 		$products = $productModel->get();
@@ -77,7 +77,7 @@ class Equipment extends RestController
 			if (in_array(strtolower($product->product), ['diesel', 'premium', 'regular'])) {
 				foreach ($equipments as $equipment) {
 
-					$categories[$equipment->id] = trim( $equipment->plate_number ." ". $equipment->model  ) ;
+					$categories[$equipment->id] = trim($equipment->plate_number . " " . $equipment->model);
 
 
 					$whereData['equipment.id'] = $equipment->id;
@@ -91,7 +91,7 @@ class Equipment extends RestController
 			}
 
 		}
-		
+
 		$data = [
 			'categories' => array_values($categories),
 			'series' => array_values($seriesData)
@@ -305,6 +305,53 @@ class Equipment extends RestController
 			], RestController::HTTP_BAD_REQUEST);
 
 		}
+	}
+
+	// public function monthly_report_get()
+	// {
+
+
+	// 	// Get parameters from URL
+	// 	$equipment_id = $this->input->get('equipment');
+	// 	$year = $this->input->get('year');
+
+
+
+	// 	// Validate input
+	// 	if (!$equipment_id || !$year) {
+	// 		return $this->response([
+	// 			'status' => false,
+	// 			'message' => 'Missing parameters: equipment and year are required'
+	// 		], RestController::HTTP_BAD_REQUEST);
+	// 	}
+	// 	$equipmentModel = new EquipmentModel;
+	// 	// $result = $equipmentModel->get();
+
+	// 	// $this->response($result, RestController::HTTP_OK);
+
+	// 	// Fetch data
+	//     $result = $equipmentModel->get_monthly_report($equipment_id, $year);
+
+	//     // Respond
+	//     return $this->response($result, RESTController::HTTP_OK);
+	// }
+
+	public function monthly_report_get()
+	{
+		$equipmentModel = new EquipmentModel;
+		$year = $this->get('year');
+		$equipment_id = $this->get('equipment'); // optional
+
+		if (!$year) {
+			return $this->response([
+				'status' => false,
+				'message' => 'Year is required'
+			], RESTController::HTTP_BAD_REQUEST);
+		}
+
+		$result = $equipmentModel->get_all_monthly_reports($year, $equipment_id);
+
+		return $this->response($result, RESTController::HTTP_OK);
 	}
 
 }

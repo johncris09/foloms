@@ -21,7 +21,7 @@ import {
   CRow,
   CSpinner,
 } from '@coreui/react'
-import MaterialReactTable from 'material-react-table'
+import { MaterialReactTable } from 'material-react-table'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useFormik } from 'formik'

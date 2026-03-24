@@ -84,7 +84,7 @@ const OldTripTicketReportNav = ({ cardTitle }) => {
           style={{ position: 'relative' }}
         >
           <hr />
-          <FuelPumpDispenseSummary />
+          {/* <FuelPumpDispenseSummary /> */}
         </CTabPane>
       </CTabContent>
     </>

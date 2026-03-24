@@ -4,9 +4,10 @@ import { CNav, CNavItem, CNavLink, CTabContent, CTabPane } from '@coreui/react'
 import MonthlyReport from './MonthlyReport'
 import FuelPumpDispenseSummary from './FuelPumpDispenseSummary'
 import FuelConsumptionReport from './FuelConsumptionReport'
+import VehicleMonthlyReport from './VehicleMonthlyReport'
 
 const TripTicketReportNav = ({ cardTitle }) => {
-  const [activeKey, setActiveKey] = useState(3)
+  const [activeKey, setActiveKey] = useState(4)
 
   return (
     <>
@@ -57,6 +58,21 @@ const TripTicketReportNav = ({ cardTitle }) => {
             Fuel Pump Dispense Summary
           </CNavLink>
         </CNavItem>
+        <CNavItem role="presentation">
+          <CNavLink
+            active={activeKey === 4}
+            component="button"
+            role="tab"
+            aria-controls="tab-4"
+            aria-selected={activeKey === 4}
+            onClick={() => {
+              setActiveKey(4)
+              toast.dismiss()
+            }}
+          >
+            Vehicle Monthly Report
+          </CNavLink>
+        </CNavItem>
       </CNav>
       <CTabContent>
         <CTabPane
@@ -85,6 +101,15 @@ const TripTicketReportNav = ({ cardTitle }) => {
         >
           <hr />
           <FuelPumpDispenseSummary />
+        </CTabPane>
+        <CTabPane
+          role="tabpanel"
+          aria-labelledby="tab-4"
+          visible={activeKey === 4}
+          style={{ position: 'relative' }}
+        >
+          <hr />
+          <VehicleMonthlyReport />
         </CTabPane>
       </CTabContent>
     </>

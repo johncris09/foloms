@@ -12,7 +12,7 @@ import {
   CModalTitle,
   CRow,
 } from '@coreui/react'
-import MaterialReactTable from 'material-react-table'
+import { MaterialReactTable } from 'material-react-table'
 import { useFormik } from 'formik'
 import { ToastContainer, toast } from 'react-toastify'
 import { Box, IconButton, Tooltip } from '@mui/material'

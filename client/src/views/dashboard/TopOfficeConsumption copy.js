@@ -1,0 +1,118 @@
+import React from 'react'
+import './../../assets/css/widget.css'
+import { Card, Skeleton } from '@mui/material'
+import 'animate.css'
+import 'intro.js/introjs.css'
+import {
+  CButton,
+  CButtonGroup,
+  CCardBody,
+  CCol,
+  CDropdown,
+  CDropdownDivider,
+  CDropdownItem,
+  CDropdownMenu,
+  CDropdownToggle,
+  CRow,
+  CTable,
+  CTableBody,
+  CTableCaption,
+  CTableDataCell,
+  CTableHead,
+  CTableHeaderCell,
+  CTableRow,
+} from '@coreui/react'
+import CIcon from '@coreui/icons-react'
+import { cilOptions } from '@coreui/icons'
+
+const TopOfficeConsumption = ({ topOfficeConsumption }) => {
+  return (
+    <Card>
+      <CCardBody className="p-2">
+        <CTable caption="top" responsive>
+          <CTableCaption>
+            <div className="d-flex justify-content-between">
+              <div>
+                <h6>Top Office Fuel Consumption Report</h6>
+              </div>
+
+            </div>
+          </CTableCaption>
+          <CTableHead>
+            <CTableRow>
+              <CTableHeaderCell>#</CTableHeaderCell>
+              <CTableHeaderCell>Office</CTableHeaderCell>
+              <CTableHeaderCell>Diesel</CTableHeaderCell>
+              <CTableHeaderCell>Premium</CTableHeaderCell>
+              <CTableHeaderCell>Regular</CTableHeaderCell>
+              <CTableHeaderCell>Total</CTableHeaderCell>
+            </CTableRow>
+          </CTableHead>
+          <CTableBody>
+            {topOfficeConsumption?.isLoading
+              ? [...Array(10)].map((_, IndexCol) => (
+                  <CTableRow key={IndexCol}>
+                    <CTableDataCell>
+                      <Skeleton
+                        variant="rounded"
+                        width={'30%'}
+                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.11)', margin: 'auto' }}
+                      />
+                    </CTableDataCell>
+                    <CTableDataCell>
+                      <Skeleton
+                        variant="rounded"
+                        width={'120%'}
+                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.11)', margin: 'auto' }}
+                      />
+                    </CTableDataCell>
+                    <CTableDataCell>
+                      <Skeleton
+                        variant="rounded"
+                        width={'30%'}
+                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.11)', margin: 'auto' }}
+                      />
+                    </CTableDataCell>
+                    <CTableDataCell>
+                      <Skeleton
+                        variant="rounded"
+                        width={'30%'}
+                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.11)', margin: 'auto' }}
+                      />
+                    </CTableDataCell>
+                    <CTableDataCell>
+                      <Skeleton
+                        variant="rounded"
+                        width={'30%'}
+                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.11)', margin: 'auto' }}
+                      />
+                    </CTableDataCell>
+                    <CTableDataCell>
+                      <Skeleton
+                        variant="rounded"
+                        width={'30%'}
+                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.11)', margin: 'auto' }}
+                      />
+                    </CTableDataCell>
+                  </CTableRow>
+                ))
+              : topOfficeConsumption?.data?.map((item, index) => {
+                  return (
+                    <CTableRow key={index}>
+                      <CTableDataCell>{index + 1}</CTableDataCell>
+                      <CTableDataCell>{item.office}</CTableDataCell>
+                      <CTableDataCell>{item.diesel}</CTableDataCell>
+                      <CTableDataCell>{item.premium}</CTableDataCell>
+                      <CTableDataCell>{item.regular}</CTableDataCell>
+                      <CTableDataCell>{item.total}</CTableDataCell>
+                    </CTableRow>
+                  )
+                })}
+          </CTableBody>
+        </CTable>
+      </CCardBody>
+    </Card>
+  )
+}
+
+export default TopOfficeConsumption

@@ -17,7 +17,7 @@ import {
   CRow,
   CSpinner,
 } from '@coreui/react'
-import MaterialReactTable from 'material-react-table'
+import { MaterialReactTable } from 'material-react-table'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFileExcel, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useFormik } from 'formik'
@@ -36,7 +36,7 @@ import * as Yup from 'yup'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import PageTitle from 'src/components/PageTitle'
 
-const Driver = ({ cardTitle }) => {
+const Equipment = ({ cardTitle }) => {
   const queryClient = useQueryClient()
   const equipmentOfficeInputRef = useRef()
   const equipmentTypeInputRef = useRef()
@@ -553,4 +553,4 @@ const Driver = ({ cardTitle }) => {
   )
 }
 
-export default Driver
+export default Equipment

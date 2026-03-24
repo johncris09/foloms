@@ -7,6 +7,7 @@ import {
   cilChildFriendly,
   cilClipboard,
   cilCog,
+  cilColorFill,
   cilFile,
   cilFolderOpen,
   cilInbox,
@@ -49,6 +50,12 @@ const _nav = (userInfo) => {
         //   text: 'NEW',
         // },
         icon: <CIcon icon={cilFile} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Vehicle Consumption',
+        to: '/vehicle_consumption',
+        icon: <CIcon icon={cilColorFill} customClassName="nav-icon" />,
       },
       {
         component: CNavItem,

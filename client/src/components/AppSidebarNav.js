@@ -2,7 +2,7 @@ import React from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import PropTypes from 'prop-types'
 
-import { CBadge } from '@coreui/react'
+import { CBadge, CNavLink } from '@coreui/react'
 
 export const AppSidebarNav = ({ items }) => {
   const location = useLocation()
@@ -21,18 +21,17 @@ export const AppSidebarNav = ({ items }) => {
   }
 
   const navItem = (item, index) => {
-    const { component, name, badge, icon, ...rest } = item
+    const { component, name, badge, icon, to, ...rest } = item
     const Component = component
     return (
-      <Component
-        {...(rest.to &&
-          !rest.items && {
-            component: NavLink,
-          })}
-        key={index}
-        {...rest}
-      >
-        {navLink(name, icon, badge)}
+      <Component key={index} {...rest}>
+        {to ? (
+          <CNavLink as={NavLink} to={to}>
+            {navLink(name, icon, badge)}
+          </CNavLink>
+        ) : (
+          navLink(name, icon, badge)
+        )}
       </Component>
     )
   }

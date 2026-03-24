@@ -1,6 +1,6 @@
 import React from 'react'
 import 'cropperjs/dist/cropper.css'
-import MaterialReactTable from 'material-react-table'
+import { MaterialReactTable } from 'material-react-table'
 import { ToastContainer } from 'react-toastify'
 import { api } from 'src/components/SystemConfiguration'
 import { useQuery } from '@tanstack/react-query'

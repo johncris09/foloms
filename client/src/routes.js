@@ -5,6 +5,9 @@ const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const TripTicket = React.lazy(() => import('./views/trip_ticket/TripTicket'))
 const OldTripTicket = React.lazy(() => import('./views/old_trip_ticket/OldTripTicket'))
 const Equipment = React.lazy(() => import('./views/equipment/Equipment'))
+const VehicleConsumption = React.lazy(
+  () => import('./views/vehicle_consumption/VehicleConsumption'),
+)
 const EquipmentType = React.lazy(() => import('./views/equipment_type/EquipmentType'))
 const ReportType = React.lazy(() => import('./views/report_type/ReportType'))
 const Driver = React.lazy(() => import('./views/driver/Driver'))
@@ -61,6 +64,13 @@ const routes = [
     exact: true,
     name: 'Old Trip Ticket',
     element: OldTripTicket,
+  },
+  {
+    path: '/vehicle_consumption',
+    user: ['Super Admin'],
+    exact: true,
+    name: 'Vehicle Consumption',
+    element: VehicleConsumption,
   },
   {
     path: '/equipment',
