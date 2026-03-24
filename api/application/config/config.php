@@ -30,7 +30,7 @@ date_default_timezone_set('Asia/Manila');
 
 
 $isProduction = false;
-$config['base_url'] = $isProduction ? 'https://oroquietacity.net/system/foloms/api/' : 'http://localhost/project/foloms/api/';
+$config['base_url'] = $isProduction ? 'https://oroquietacity.net/system/foloms/api/' : 'http://localhost/foloms/api/';
 
 /*
 |--------------------------------------------------------------------------
@@ -394,7 +394,7 @@ $config['sess_driver'] = 'files';
 $config['sess_cookie_name'] = 'ci_session';
 $config['sess_samesite'] = 'Lax';
 $config['sess_expiration'] = 7200;
-$config['sess_save_path'] = sys_get_temp_dir();
+$config['sess_save_path'] = 'C:\laragon\tmp';
 $config['sess_match_ip'] = FALSE;
 $config['sess_time_to_update'] = 300;
 $config['sess_regenerate_destroy'] = FALSE;

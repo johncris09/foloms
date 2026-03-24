@@ -1751,7 +1751,9 @@ class RestController extends \CI_Controller
 
         // Returns NULL if the SERVER variables PHP_AUTH_USER and HTTP_AUTHENTICATION don't exist
         $username = $this->input->server('PHP_AUTH_USER');
-        $http_auth = $this->input->server('HTTP_AUTHENTICATION') ?: $this->input->server('HTTP_AUTHORIZATION');
+        $http_auth = $this->input->server('HTTP_AUTHENTICATION')
+            ?: $this->input->server('HTTP_AUTHORIZATION')
+            ?: $this->input->server('REDIRECT_HTTP_AUTHORIZATION');
 
         $password = null;
         if ($username !== null) {
@@ -1761,7 +1763,7 @@ class RestController extends \CI_Controller
             // HTTP_AUTHORIZATION e.g. my_username:my_password. This is passed in the .htaccess file
             if (strpos(strtolower($http_auth), 'basic') === 0) {
                 // Search online for HTTP_AUTHORIZATION workaround to explain what this is doing
-                list($username, $password) = explode(':', base64_decode(substr($this->input->server('HTTP_AUTHORIZATION'), 6)));
+                list($username, $password) = explode(':', base64_decode(substr($http_auth, 6)));
             }
         }
 
