@@ -382,12 +382,6 @@ const TripTicket = ({ cardTitle }) => {
             message: 'Only one of Issued By Office or Add Purchase should be filled',
           })
         }
-        if (parseFloat(gasoline_purchased || 0) > 0 && !value.depo_id) {
-          return this.createError({
-            path: 'depo_id',
-            message: 'Depo is required when Add Purchase is used',
-          })
-        }
         return true
       },
     )
@@ -477,8 +471,6 @@ const TripTicket = ({ cardTitle }) => {
     },
   })
 
-  const isExternalFuelSubsidy = parseFloat(form.values.gasoline_purchased || 0) > 0
-
   const insertTripTicket = useMutation({
     mutationFn: async (values) => {
       return await api.post('trip_ticket/insert', values)
@@ -542,10 +534,6 @@ const TripTicket = ({ cardTitle }) => {
           parseFloat(form.values.gasoline_balance_in_tank) -
           (!value.trim() ? 0 : value),
       )
-
-      if (parseFloat(value || 0) > 0) {
-        form.setFieldValue('depo_id', '')
-      }
     }
 
     if (name === 'gasoline_purchased') {
@@ -1514,59 +1502,48 @@ const TripTicket = ({ cardTitle }) => {
                           {form.values.remarks}
                         </CFormTextarea>
                       </CCol>
-                      {isExternalFuelSubsidy ? (
-                        <CCol md={12} className="mt-3">
-                          <CRow>
-                            <CCol md={8}>
-                              <CFormLabel>
-                                {
-                                  <>
-                                    {tripTicketDepo.isLoading && <CSpinner size="sm" />}
-                                    {requiredField('Depo')}
-                                  </>
-                                }
-                              </CFormLabel>
-                            </CCol>
-                            <CCol md={4} className="text-end">
-                              <CButton
-                                color="secondary"
-                                size="sm"
-                                type="button"
-                                onClick={() => setModalDepoVisible(true)}
-                              >
-                                + Add Depo
-                              </CButton>
-                            </CCol>
-                          </CRow>
-                          <Select
-                            ref={tripTicketDepoInputRef}
-                            value={
-                              !tripTicketDepo.isLoading &&
-                              tripTicketDepo.data?.find(
-                                (option) => option.value === form.values.depo_id,
-                              )
-                            }
-                            onChange={handleSelectChange}
-                            options={!tripTicketDepo.isLoading && tripTicketDepo.data}
-                            name="depo_id"
-                            isSearchable
-                            placeholder="Select depo"
-                            isClearable
-                          />
-                          {form.touched.depo_id && form.errors.depo_id && (
-                            <CFormText className="text-danger">{form.errors.depo_id}</CFormText>
-                          )}
-                        </CCol>
-                      ) : (
-                        <CCol md={12} className="mt-3">
-                          <CFormInput
-                            type="text"
-                            value="Fuel subsidy provided by office (Depo not required)"
-                            size="sm"
-                            disabled
-                          />
-                        </CCol>
-                      )}
+                      <CCol md={12} className="mt-3">
+                        <CRow>
+                          <CCol md={8}>
+                            <CFormLabel>
+                              {
+                                <>
+                                  {tripTicketDepo.isLoading && <CSpinner size="sm" />}
+                                  {'Depo'}
+                                </>
+                              }
+                            </CFormLabel>
+                          </CCol>
+                          <CCol md={4} className="text-end">
+                            <CButton
+                              color="secondary"
+                              size="sm"
+                              type="button"
+                              onClick={() => setModalDepoVisible(true)}
+                            >
+                              + Add Depo
+                            </CButton>
+                          </CCol>
+                        </CRow>
+                        <Select
+                          ref={tripTicketDepoInputRef}
+                          value={
+                            !tripTicketDepo.isLoading &&
+                            tripTicketDepo.data?.find(
+                              (option) => option.value === form.values.depo_id,
+                            )
+                          }
+                          onChange={handleSelectChange}
+                          options={!tripTicketDepo.isLoading && tripTicketDepo.data}
+                          name="depo_id"
+                          isSearchable
+                          placeholder="Select depo (optional — indicates external fuel)"
+                          isClearable
+                        />
+                        {form.touched.depo_id && form.errors.depo_id && (
+                          <CFormText className="text-danger">{form.errors.depo_id}</CFormText>
+                        )}
+                      </CCol>
                     </CRow>
                   </CCol>
                 </CRow>
