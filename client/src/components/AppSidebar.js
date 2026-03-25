@@ -5,7 +5,7 @@ import { AppSidebarNav } from './AppSidebarNav'
 import logo from './../assets/images/logo.png'
 import SimpleBar from 'simplebar-react'
 import 'simplebar/dist/simplebar.min.css'
-import { InvalidTokenError, jwtDecode } from 'jwt-decode'
+import { jwtDecode } from 'jwt-decode'
 // sidebar nav config
 import navigation from '../_nav'
 
@@ -23,6 +23,7 @@ const AppSidebar = () => {
   }, [])
   return (
     <CSidebar
+      colorScheme="dark"
       position="fixed"
       unfoldable={unfoldable}
       visible={sidebarShow}
@@ -30,11 +31,11 @@ const AppSidebar = () => {
         dispatch({ type: 'set', sidebarShow: visible })
       }}
     >
-      <CSidebarBrand className="d-md-flex" to="/">
-        <CImage src={logo} height={100} className="mt-3 mb-1" />
+      <CSidebarBrand className="d-flex justify-content-center" to="/">
+        <CImage src={logo} height={100} className="mt-3 mb-1 mx-auto d-block" />
       </CSidebarBrand>
-      <CSidebarBrand className="d-md-flex" to="/">
-        <p className="text-center h6">{process.env.REACT_APP_PROJECT_TITLE}</p>
+      <CSidebarBrand className="d-flex justify-content-center" to="/">
+        <p className="text-center h6 mb-0 w-100">{process.env.REACT_APP_PROJECT_TITLE}</p>
       </CSidebarBrand>
       <CSidebarNav>
         <SimpleBar>
