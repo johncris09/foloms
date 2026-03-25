@@ -8,6 +8,7 @@ import {
   cilClipboard,
   cilCog,
   cilColorFill,
+  cilFactory,
   cilFile,
   cilFolderOpen,
   cilInbox,
@@ -86,7 +87,7 @@ const _nav = (userInfo) => {
         name: 'Depo',
         to: '/depo',
 
-        icon: <CIcon icon={cilClipboard} customClassName="nav-icon" />,
+        icon: <CIcon icon={cilFactory} customClassName="nav-icon" />,
       },
       {
         component: CNavItem,

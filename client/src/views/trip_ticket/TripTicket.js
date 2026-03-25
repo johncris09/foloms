@@ -1516,7 +1516,7 @@ const TripTicket = ({ cardTitle }) => {
                           </CCol>
                           <CCol md={4} className="text-end">
                             <CButton
-                              color="secondary"
+                              color="primary"
                               size="sm"
                               type="button"
                               onClick={() => setModalDepoVisible(true)}
