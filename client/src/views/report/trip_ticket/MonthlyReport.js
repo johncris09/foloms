@@ -205,7 +205,7 @@ const MonthlyReport = ({ cardTitle }) => {
         </CCol>
         <CCol md={8}>
           <h6>Print Preview</h6>
-          {filter.values.report_type === 1 && monthlyReport?.data?.data?.length > 0 && (
+          {filter.values.report_type == 1 && monthlyReport?.data?.data?.length > 0 && (
             <PDFViewer width="100%" height="750px">
               <Document
                 author={process.env.REACT_APP_DEVELOPER}

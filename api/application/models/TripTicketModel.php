@@ -24,7 +24,7 @@ class TripTicketModel extends CI_Model
 			return;
 		}
 
-		$this->db->where("trip_ticket.depo_id IS NULL OR trip_ticket.depo_id = ''", null, false);
+		$this->db->where("(trip_ticket.depo_id IS NULL OR trip_ticket.depo_id = '')", null, false);
 	}
 
 	public function get()
@@ -324,15 +324,18 @@ class TripTicketModel extends CI_Model
 	public function get_driver($data, $depo_scope = 'within_office')
 	{
 
-		$group_by = 'driver';
+		$select = '
+			driver.id driver_id,
+			driver.last_name,
+			driver.first_name,
+			driver.middle_name,
+			driver.suffix,
+			MIN(equipment.id) equipment_id
+		';
+		$group_by = 'driver.id';
 
 		if ($data['report_type'] == 1) {
-
-			$group_by = 'driver, equipment';
-		}
-
-		$this->db
-			->select(' 
+			$select = '
 				driver.id driver_id,
 				driver.last_name,
 				driver.first_name,
@@ -340,8 +343,13 @@ class TripTicketModel extends CI_Model
 				driver.suffix,
 				equipment.id equipment_id,
 				equipment.plate_number,
-				equipment.model,
-			')
+				equipment.model
+			';
+			$group_by = 'driver.id, equipment.id';
+		}
+
+		$this->db
+			->select($select)
 			->from('trip_ticket')
 			->join('driver', 'trip_ticket.driver = driver.id', 'LEFT')
 			->join('equipment', 'trip_ticket.equipment = equipment.id', 'LEFT')
@@ -398,32 +406,14 @@ class TripTicketModel extends CI_Model
 	public function get_equipment_report_type_2($data, $depo_scope = 'within_office')
 	{
 		$this->db
-			->select('
-				trip_ticket.purchase_date,
-				trip_ticket.id,
-				trip_ticket.equipment,
-				trip_ticket.purposes,
-				trip_ticket.lubricating_oil_issued_purchased,
-				trip_ticket.distance_traveled,
-				trip_ticket.grease_issued_purchased,
-				trip_ticket.approximate_distance_traveled,
-				equipment.model,
-				equipment.include_description,
-				equipment.plate_number,
-				trip_ticket.departure_time,
-				trip_ticket.arrival_time_at_destination,
-				trip_ticket.departure_time_from_destination,
-				trip_ticket.arrival_time_back,
-				trip_ticket.gasoline_issued_by_office,
-				trip_ticket.gasoline_purchased   
-			')
+			->select('trip_ticket.equipment as equipment')
+			->distinct()
 			->from('trip_ticket')
 			->join('driver', 'trip_ticket.driver = driver.id', 'LEFT')
 			->join('equipment', 'trip_ticket.equipment = equipment.id', 'LEFT')
 
 			->where($data)
-			->group_by('equipment.id')
-			->order_by('trip_ticket.purchase_date asc')
+			->order_by('trip_ticket.equipment', 'asc')
 		;
 
 		$this->apply_depo_filter($depo_scope);
