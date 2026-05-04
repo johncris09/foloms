@@ -429,6 +429,7 @@ const FuelPumpDispenseSummary = ({ cardTitle }) => {
       office: '',
       purchase_date: '',
       product_type: '',
+      depo_scope: 'within_office',
     },
     onSubmit: async (values) => {
       const selectElement = document.getElementById('productTypeSelect')
@@ -549,6 +550,15 @@ const FuelPumpDispenseSummary = ({ cardTitle }) => {
     staleTime: Infinity,
   })
 
+  const fuelPumpDispenseDepo = useQuery({
+    queryFn: async () =>
+      await api.get('depo').then((response) => {
+        return response.data
+      }),
+    queryKey: ['fuelPumpDispenseDepo'],
+    staleTime: Infinity,
+  })
+
   return (
     <CRow>
       <CCol md={4}>
@@ -617,6 +627,26 @@ const FuelPumpDispenseSummary = ({ cardTitle }) => {
                 </option>
               ))}
           </CFormSelect>
+
+          <CFormLabel className="mt-2">{requiredField('Depo Filter')}</CFormLabel>
+          <CFormSelect
+            size="sm"
+            value={filter.values.depo_scope}
+            name="depo_scope"
+            onChange={(e) => {
+              filter.setFieldValue(e.target.name, e.target.value)
+            }}
+            required
+          >
+            <option value="within_office">Within the Office</option>
+            {!fuelPumpDispenseDepo.isLoading &&
+              fuelPumpDispenseDepo.data?.map((depo) => (
+                <option key={depo.id} value={depo.id}>
+                  {depo.name}
+                </option>
+              ))}
+          </CFormSelect>
+
           <CFormInput
             type="number"
             label={requiredField('Rows Per Page')}

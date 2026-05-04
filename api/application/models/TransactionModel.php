@@ -260,8 +260,16 @@ class TransactionModel extends CI_Model
 
 	}
 
-	public function filter_transaction($data = null)
+	public function filter_transaction($data = null, $depo_scope = 'within_office')
 	{
+		if ($depo_scope === 'within_office') {
+			$leg1_depo = "(c.id IS NULL OR c.depo_id IS NULL OR c.depo_id = '')";
+			$leg2_depo = "(c.depo_id IS NULL OR c.depo_id = '')";
+		} else {
+			$depo_id = (int) $depo_scope;
+			$leg1_depo = "(c.id IS NULL OR c.depo_id = $depo_id)";
+			$leg2_depo = "c.depo_id = $depo_id";
+		}
 
 		$query_string = '
 		
@@ -326,6 +334,7 @@ class TransactionModel extends CI_Model
 					LEFT JOIN trip_ticket c
 					ON d.product = c.product
 					AND d.date = c.purchase_date
+				WHERE ' . $leg1_depo . '
 				UNION
 				ALL
 				SELECT
@@ -340,6 +349,7 @@ class TransactionModel extends CI_Model
 					LEFT JOIN delivery d
 					ON c.product = d.product
 					AND c.purchase_date = d.date
+				WHERE ' . $leg2_depo . '
 				GROUP BY c.purchase_date,
 					c.product) AS a) t1';
 

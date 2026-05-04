@@ -12,6 +12,21 @@ class TripTicketModel extends CI_Model
 		parent::__construct();
 	}
 
+	private function apply_depo_filter($depo_scope = 'within_office')
+	{
+		if ($depo_scope === 'depos') {
+			$this->db->where("trip_ticket.depo_id IS NOT NULL AND trip_ticket.depo_id <> ''", null, false);
+			return;
+		}
+
+		if ($depo_scope !== 'within_office' && $depo_scope !== '' && $depo_scope !== null) {
+			$this->db->where('trip_ticket.depo_id', $depo_scope);
+			return;
+		}
+
+		$this->db->where("trip_ticket.depo_id IS NULL OR trip_ticket.depo_id = ''", null, false);
+	}
+
 	public function get()
 	{
 		$this->db
@@ -154,7 +169,7 @@ class TripTicketModel extends CI_Model
 		return $query->result();
 	}
 
-	public function get_summary_consumption($data)
+	public function get_summary_consumption($data, $depo_scope = 'within_office')
 	{
 
 		$this->db
@@ -214,6 +229,8 @@ class TripTicketModel extends CI_Model
 			->where($data)
 			->order_by('trip_ticket.purchase_date,   driver.last_name asc');
 
+		$this->apply_depo_filter($depo_scope);
+
 
 		$query = $this->db->get();
 
@@ -221,7 +238,7 @@ class TripTicketModel extends CI_Model
 	}
 
 
-	public function get_product_summary_consumption($data)
+	public function get_product_summary_consumption($data, $depo_scope = 'within_office')
 	{
 
 		$this->db
@@ -235,6 +252,8 @@ class TripTicketModel extends CI_Model
 			->join('equipment', 'trip_ticket.equipment = equipment.id', 'LEFT')
 
 			->where($data);
+
+		$this->apply_depo_filter($depo_scope);
 		// ->group_by('product.product');
 
 
@@ -302,7 +321,7 @@ class TripTicketModel extends CI_Model
 	// 	return $query->result();
 	// }
 
-	public function get_driver($data)
+	public function get_driver($data, $depo_scope = 'within_office')
 	{
 
 		$group_by = 'driver';
@@ -333,12 +352,14 @@ class TripTicketModel extends CI_Model
 			->group_by($group_by)
 			->order_by('driver.last_name', 'asc');
 
+		$this->apply_depo_filter($depo_scope);
+
 		// return  $this->db->get_compiled_select();
 		$query = $this->db->get();
 		return $query->result();
 	}
 
-	public function get_equipment($data)
+	public function get_equipment($data, $depo_scope = 'within_office')
 	{
 		$this->db
 			->select('
@@ -367,12 +388,14 @@ class TripTicketModel extends CI_Model
 			->order_by('trip_ticket.purchase_date asc')
 		;
 
+		$this->apply_depo_filter($depo_scope);
+
 
 		$query = $this->db->get();
 		return $query->result();
 	}
 
-	public function get_equipment_report_type_2($data)
+	public function get_equipment_report_type_2($data, $depo_scope = 'within_office')
 	{
 		$this->db
 			->select('
@@ -402,6 +425,8 @@ class TripTicketModel extends CI_Model
 			->group_by('equipment.id')
 			->order_by('trip_ticket.purchase_date asc')
 		;
+
+		$this->apply_depo_filter($depo_scope);
 
 
 		$query = $this->db->get();

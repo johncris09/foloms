@@ -29,6 +29,10 @@ class MonthlyReport extends RestController
 
 		$tripTicketModel = new TripTicketModel;
 		$requestData = $this->input->get();
+		$depo_scope = isset($requestData['depo_scope']) && $requestData['depo_scope'] !== ''
+			? $requestData['depo_scope']
+			: 'within_office';
+		$data = [];
 
 		$start_date = date('Y-m-d', strtotime($requestData['start_date']));
 		$end_date = date('Y-m-d', strtotime($requestData['end_date']));
@@ -44,7 +48,7 @@ class MonthlyReport extends RestController
 			);
 			$data = [];
 			// group by driver and equipment base on date range
-			$drivers = $tripTicketModel->get_driver($date_range);
+			$drivers = $tripTicketModel->get_driver($date_range, $depo_scope);
 
 
 			foreach ($drivers as $driver) {
@@ -56,6 +60,8 @@ class MonthlyReport extends RestController
 						'driver.id' => $driver->driver_id,
 						'equipment.id' => $driver->equipment_id,
 					]
+					,
+					$depo_scope
 				);
 
 
@@ -121,7 +127,7 @@ class MonthlyReport extends RestController
 			);
 			$data = [];
 			// group by driver  base on date range
-			$drivers = $tripTicketModel->get_driver($date_range);
+			$drivers = $tripTicketModel->get_driver($date_range, $depo_scope);
 			foreach ($drivers as $driver) {
 
 
@@ -130,7 +136,7 @@ class MonthlyReport extends RestController
 					'driver.id' => $driver->driver_id,
 					'purchase_date >=' => $start_date, // Directly extract date
 					'purchase_date <=' => $end_date, // Directly extract date
-				]);
+				], $depo_scope);
 				$rows = count($equipments);
 
 				if ($rows > 1) {
@@ -144,7 +150,7 @@ class MonthlyReport extends RestController
 							'purchase_date >=' => $start_date, // Directly extract date
 							'purchase_date <=' => $end_date, // Directly extract date
 							'equipment.id' => $equipment->equipment,
-						]);
+						], $depo_scope);
 
 
 						$tripTicketData = [];
@@ -184,7 +190,7 @@ class MonthlyReport extends RestController
 						'purchase_date >=' => $start_date, // Directly extract date
 						'purchase_date <=' => $end_date, // Directly extract date
 						'equipment.id' => $driver->equipment_id,
-					]);
+					], $depo_scope);
 					$tripTicketData = [];
 					foreach ($equipments as $equipment) {
 						$tripTicketData[] = array(

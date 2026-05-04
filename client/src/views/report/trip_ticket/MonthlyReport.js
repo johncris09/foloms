@@ -1,13 +1,22 @@
 import React, { useRef } from 'react'
 import Select from 'react-select'
-import { Page, Text, View, Document, StyleSheet, PDFViewer, Font, Image } from '@react-pdf/renderer'
+import { Image, Page, Text, View, Document, StyleSheet, PDFViewer, Font } from '@react-pdf/renderer'
 import monthlyReportTemplate1 from './../../../assets/images/template/monthly_report 1.png'
 import monthlyReportTemplate2 from './../../../assets/images/template/monthly_report 2.png'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFilter } from '@fortawesome/free-solid-svg-icons'
 import { useFormik } from 'formik'
 import { ToastContainer, toast } from 'react-toastify'
-import { CButton, CCol, CForm, CFormLabel, CFormText, CRow, CSpinner } from '@coreui/react'
+import {
+  CButton,
+  CCol,
+  CForm,
+  CFormLabel,
+  CFormSelect,
+  CFormText,
+  CRow,
+  CSpinner,
+} from '@coreui/react'
 import { api, officer, requiredField } from 'src/components/SystemConfiguration'
 import { format, parse } from 'date-fns'
 import { CDateRangePicker } from '@coreui/react-pro'
@@ -24,6 +33,7 @@ const MonthlyReport = ({ cardTitle }) => {
       start_date: '',
       end_date: '',
       report_type: '',
+      depo_scope: 'within_office',
     },
     // validationSchema: validationSchema,
     onSubmit: async (values) => {
@@ -38,6 +48,7 @@ const MonthlyReport = ({ cardTitle }) => {
     },
     onSuccess: async (response) => {
       if (response.data.length) {
+        console.info(response.data)
         return response.data
       } else {
         toast.error('No Records Found!')
@@ -60,6 +71,15 @@ const MonthlyReport = ({ cardTitle }) => {
         return formattedData
       }),
     queryKey: ['reportTypeReport'],
+    staleTime: Infinity,
+  })
+
+  const monthlyReportDepo = useQuery({
+    queryFn: async () =>
+      await api.get('depo').then((response) => {
+        return response.data
+      }),
+    queryKey: ['monthlyReportDepo'],
     staleTime: Infinity,
   })
 
@@ -157,6 +177,24 @@ const MonthlyReport = ({ cardTitle }) => {
             {filter.touched.report_type && filter.errors.report_type && (
               <CFormText className="text-danger">{filter.errors.report_type}</CFormText>
             )}
+            <CFormLabel className="mt-2">{requiredField('Depo Filter')}</CFormLabel>
+            <CFormSelect
+              size="sm"
+              value={filter.values.depo_scope}
+              name="depo_scope"
+              onChange={(e) => {
+                filter.setFieldValue(e.target.name, e.target.value)
+              }}
+              required
+            >
+              <option value="within_office">Within the Office</option>
+              {!monthlyReportDepo.isLoading &&
+                monthlyReportDepo.data?.map((depo) => (
+                  <option key={depo.id} value={depo.id}>
+                    {depo.name}
+                  </option>
+                ))}
+            </CFormSelect>
             <div className="d-grid gap-2 d-md-flex mt-3 justify-content-md-end">
               <CButton type="submit" size="sm" variant="outline" color="primary">
                 <FontAwesomeIcon icon={faFilter} />
@@ -167,7 +205,7 @@ const MonthlyReport = ({ cardTitle }) => {
         </CCol>
         <CCol md={8}>
           <h6>Print Preview</h6>
-          {filter.values.report_type == 1 && (
+          {filter.values.report_type === 1 && monthlyReport?.data?.data?.length > 0 && (
             <PDFViewer width="100%" height="750px">
               <Document
                 author={process.env.REACT_APP_DEVELOPER}
@@ -465,7 +503,7 @@ const MonthlyReport = ({ cardTitle }) => {
               </Document>
             </PDFViewer>
           )}
-          {filter.values.report_type == 2 && (
+          {filter.values.report_type == 2 && monthlyReport?.data?.data?.length > 0 && (
             <PDFViewer width="100%" height="750px">
               <Document
                 author={process.env.REACT_APP_DEVELOPER}

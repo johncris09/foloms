@@ -7,7 +7,7 @@ import FuelConsumptionReport from './FuelConsumptionReport'
 import VehicleMonthlyReport from './VehicleMonthlyReport'
 
 const TripTicketReportNav = ({ cardTitle }) => {
-  const [activeKey, setActiveKey] = useState(4)
+  const [activeKey, setActiveKey] = useState(1)
 
   return (
     <>

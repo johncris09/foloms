@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Page, Text, View, Document, StyleSheet, PDFViewer, Font } from '@react-pdf/renderer'
 import { CButton, CCol, CForm, CFormInput, CFormSelect, CRow } from '@coreui/react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { api, months, requiredField } from 'src/components/SystemConfiguration'
 import { useFormik } from 'formik'
 import { toast } from 'react-toastify'
@@ -166,10 +166,17 @@ const FuelConsumptionReport = ({ cardTitle }) => {
     'Consumption',
     'Balance',
   ]
+  const fuelConsumptionDepo = useQuery({
+    queryFn: async () => await api.get('depo').then((response) => response.data),
+    queryKey: ['fuelConsumptionDepo'],
+    staleTime: Infinity,
+  })
+
   const filter = useFormik({
     initialValues: {
       month: '',
       year: '',
+      depo_scope: 'within_office',
     },
     onSubmit: async (values) => {
       setFilterTitle('Month of ' + months[values.month - 1]?.name + ', ' + values.year)
@@ -183,7 +190,7 @@ const FuelConsumptionReport = ({ cardTitle }) => {
       return await api.get('transaction/filter', { params: values })
     },
     onSuccess: async (response) => {
-      if (response.data.length > 0 || response.data.length > 0) {
+      if (response.data.length > 0) {
         const data = response.data
         const dividedArray = chunkArray(data, parseInt(rowsPerPage))
         setChunks(dividedArray)
@@ -297,6 +304,22 @@ const FuelConsumptionReport = ({ cardTitle }) => {
                 {year}
               </option>
             ))}
+          </CFormSelect>
+
+          <CFormSelect
+            size="sm"
+            value={filter.values.depo_scope}
+            name="depo_scope"
+            label="Depo"
+            onChange={handleInputChange}
+          >
+            <option value="within_office">Within the Office</option>
+            {!fuelConsumptionDepo.isLoading &&
+              fuelConsumptionDepo.data?.map((depo) => (
+                <option key={depo.id} value={depo.id}>
+                  {depo.name}
+                </option>
+              ))}
           </CFormSelect>
 
           <CFormInput

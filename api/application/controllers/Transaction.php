@@ -65,9 +65,14 @@ class Transaction extends RestController
 
 		$requestData = $this->input->get();
 
-		$result = $transactionModel->filter_transaction($requestData);
+		$depo_scope = isset($requestData['depo_scope']) && $requestData['depo_scope'] !== ''
+			? $requestData['depo_scope']
+			: 'within_office';
+
+		$result = $transactionModel->filter_transaction($requestData, $depo_scope);
 
 		$diesel_balance = $premium_balance = $regular_balance = 0;
+		$transaction = [];
 
 		foreach ($result as $row) {
 

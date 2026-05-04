@@ -25,12 +25,15 @@ class SummaryConsumption extends RestController
 	{
 		$tripTicketModel = new TripTicketModel;
 		$requestData = $this->input->get();
+		$depo_scope = isset($requestData['depo_scope']) && $requestData['depo_scope'] !== ''
+			? $requestData['depo_scope']
+			: 'within_office';
 
 		$data = array(
 			'trip_ticket.purchase_date' => date('Y-m-d', strtotime($requestData['purchase_date']))
 		);
 
-		$summary_consumptions = $tripTicketModel->get_summary_consumption($data);
+		$summary_consumptions = $tripTicketModel->get_summary_consumption($data, $depo_scope);
 		$summary_consumption_data = [];
 		foreach ($summary_consumptions as $summary_consumption) {
 
@@ -81,7 +84,7 @@ class SummaryConsumption extends RestController
 
 		$result = array(
 			'consumption' => $summary_consumption_data,
-			'summary' => $tripTicketModel->get_product_summary_consumption($data),
+			'summary' => $tripTicketModel->get_product_summary_consumption($data, $depo_scope),
 
 		);
 		$this->response($result, RestController::HTTP_OK);

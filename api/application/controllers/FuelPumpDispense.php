@@ -30,6 +30,9 @@ class FuelPumpDispense extends RestController
 		$deliveryModel = new DeliveryModel;
 		$productModel = new ProductModel;
 		$requestData = $this->input->get();
+		$depo_scope = isset($requestData['depo_scope']) && $requestData['depo_scope'] !== ''
+			? $requestData['depo_scope']
+			: 'within_office';
 
 
 
@@ -54,7 +57,7 @@ class FuelPumpDispense extends RestController
 
 
 
-		$summary_consumptions = $tripTicketModel->get_summary_consumption($data);
+		$summary_consumptions = $tripTicketModel->get_summary_consumption($data, $depo_scope);
 		// $this->response($summary_consumptions, RestController::HTTP_OK);
 		$summary_consumption_data = [];
 		foreach ($summary_consumptions as $summary_consumption) {
@@ -117,7 +120,7 @@ class FuelPumpDispense extends RestController
 
 		$unit_cost = $previous_delivery->price;
 
-		$consumption = $tripTicketModel->get_product_summary_consumption($data);
+		$consumption = $tripTicketModel->get_product_summary_consumption($data, $depo_scope);
 		$product_summary_consumption[] = array(
 			'product' => $consumption->product,
 			'unit_cost' => isset( $summary_consumption_data[0]['unit_cost']) ? $summary_consumption_data[0]['unit_cost'] : 0 ,

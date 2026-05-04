@@ -1,29 +1,32 @@
-import React, { useState, useCallback } from 'react'
-import { utils, writeFile } from 'xlsx'
+import React, { useState } from 'react'
 import { format, parse } from 'date-fns'
 import { CDatePicker } from '@coreui/react-pro'
 import { ToastContainer } from 'react-toastify'
 import { useFormik } from 'formik'
-import * as Yup from 'yup'
 import { api } from 'src/components/SystemConfiguration'
-import { CButton, CCard, CCardBody, CCol, CForm, CRow } from '@coreui/react'
+import {
+  CButton,
+  CCard,
+  CCardBody,
+  CCol,
+  CForm,
+  CFormLabel,
+  CFormSelect,
+  CRow,
+} from '@coreui/react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFilter } from '@fortawesome/free-solid-svg-icons'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { Page, Text, View, Document, StyleSheet, PDFViewer, Font } from '@react-pdf/renderer'
 import PageTitle from 'src/components/PageTitle'
 
 const SummaryConsumption = ({ cardTitle }) => {
   const [chunks, setChunks] = useState([])
-  const [totalChunks, setTotalChunks] = useState(2)
-  const queryClient = useQueryClient()
-  const [rowsPerPage, setRowsPerPage] = useState(20)
-  const validationSchema = Yup.object().shape({
-    purchase_date: Yup.string().required('Date is required'),
-  })
+  const rowsPerPage = 20
   const filter = useFormik({
     initialValues: {
       purchase_date: '2024-06-17T16:00:00.000Z',
+      depo_scope: 'within_office',
     },
     // validationSchema: validationSchema,
     onSubmit: async (values) => {
@@ -40,7 +43,6 @@ const SummaryConsumption = ({ cardTitle }) => {
       const data = response.data.summary_consumption
       const dividedArray = chunkArray(data, parseInt(rowsPerPage))
       setChunks(dividedArray)
-      setTotalChunks(parseInt(dividedArray.length))
 
       // setPrintPreviewModalVisible(true)
     },
@@ -48,6 +50,15 @@ const SummaryConsumption = ({ cardTitle }) => {
       console.info(error.response.data)
       // toast.error(error.response.data.message)
     },
+  })
+
+  const summaryConsumptionDepo = useQuery({
+    queryFn: async () =>
+      await api.get('depo').then((response) => {
+        return response.data
+      }),
+    queryKey: ['summaryConsumptionDepo'],
+    staleTime: Infinity,
   })
 
   const handleInputChange = (date) => {
@@ -270,6 +281,25 @@ const SummaryConsumption = ({ cardTitle }) => {
                   inputDateParse={(date) => parse(date, 'MMMM dd, yyyy', new Date())}
                   inputDateFormat={(date) => format(new Date(date), 'MMMM dd, yyyy')}
                 />
+
+                <CFormLabel className="mt-2">Depo Filter</CFormLabel>
+                <CFormSelect
+                  size="sm"
+                  value={filter.values.depo_scope}
+                  name="depo_scope"
+                  onChange={(e) => {
+                    filter.setFieldValue(e.target.name, e.target.value)
+                  }}
+                  required
+                >
+                  <option value="within_office">Within the Office</option>
+                  {!summaryConsumptionDepo.isLoading &&
+                    summaryConsumptionDepo.data?.map((depo) => (
+                      <option key={depo.id} value={depo.id}>
+                        {depo.name}
+                      </option>
+                    ))}
+                </CFormSelect>
 
                 {/* {filter.touched.course && filter.errors.course && (
                   <CFormText className="text-danger">{filter.errors.course}</CFormText>
